@@ -1,0 +1,23 @@
+# Root configuration; roadmap policy is locked and supplied by the plugin.
+ignore: []
+living:
+  gitignored: true
+doctypes:
+  product:
+    type: prd
+  specs:
+    type: spec
+    fields:
+      status:
+        kind: enum
+        values: [draft, active, superseded]
+        required: true
+      superseded-by:
+        kind: reference
+  reviews:
+    type: review
+    owns: false
+    gitignored: true
+    fields:
+      subject: { kind: string, required: true }
+      template: { kind: reference, to: templates, required: true }

@@ -1,42 +1,33 @@
-# Struct Docs
+# Documentation
 
-Struct Docs will be an agent plugin meant to replace our `manage-docs` plugin. I have learned some things from using it.
+<!-- struct-docs:index -->
 
-## Purpose
+Route by `type` and the directory table in `.struct-docs.yml`. Extend the document whose
+`purpose` and `owns` cover the material; when two purposes fit, the narrower wins. Create a
+new document only when no existing purpose fits. Keep reasons beside rules. Ask the user
+about undecided behavior; only what they cannot answer goes into `open-questions.md`.
 
-A lot of people talk about _what_ project documentation should contain, less people talk about _how_ it should contain them. Our tool should use a (customizable) frontmatter schema to keep free of conflicts & redundancy. The docs-lint cli can run deterministic checks on our documentation that most people are using the model for.
+## product
 
-## Customization
+- [prd](product/prd.md) — The problem, users, product requirements and scope of Struct Docs.
 
-Instead of the current `.doctypes` and `.docsignore`, we will use a single `.struct-docs.yml` config file. This file allows us to specify the doctypes, what should be ignored, and even customize the frontmatter schema for the particular project.
+## specs
 
-## Doctypes
+- [checks](specs/checks.md) — Finding severity, audit scope and the boundary of automatic repair.
+- [cli](specs/cli.md) — Plugin commands, rule interface, layers and local development verification.
+- [config](specs/config.md) — How root configuration defines doctypes, field kinds and exclusions.
+- [doc-schema](specs/doc-schema.md) — Non-roadmap frontmatter, naming, references and declared topic ownership.
+- [execute-roadmap](specs/execute-roadmap.md) — Branch, task delegation, verification and stopping behavior for roadmap execution.
+- [layout](specs/layout.md) — Path classification, generated index contents and retirement of documents.
+- [migration](specs/migration.md) — Legacy conversion, reference preservation and validation on repository copies.
+- [packaging](specs/packaging.md) — Git installation, committed bundle, hook lifecycle and local plugin verification.
+- [project-cli](specs/project-cli.md) — Generated Commander wrapper, plugin discovery and project-owned body rules.
+- [roadmap-rollup](specs/roadmap-rollup.md) — How roadmap status is derived, how deps resolve, and what the next ready node means.
+- [roadmap-schema](specs/roadmap-schema.md) — How roadmap files are structured and parsed. Status and deps are in specs/roadmap-rollup.
+- [skills](specs/skills.md) — Init, audit, roadmap, review and fold workflows and their approval boundaries.
 
-We will have 1 doctype that cannot be changed, removed, or ignored: `roadmap`. Roadmaps follow a particular structure and should not be customizable.
+## roadmaps
 
-## Frontmatter Schema
+- [v1](roadmaps/v1/index.md) — **todo** — Replace manage-docs with customizable structural checks and prove migration on a repository copy.
 
-Similar to above, We should probably have some required fields that cannot be removed or changed so that our CLI can be effective.
-
-## Skills
-
-It should contain the same skills as our manage docs, plus these if we dont have them or if below is defined differently.
-
-- **/init**: Initialize new project docs. Detects the current setup and proposes a config (`.struct-docs.yml`). Will reorganize the documentation to follow the particular structure.
-- **/roadmap**: Generates a new roadmap.
-- **/execute-roadmap**: Executes a roadmap file.
-- **/fold**: Extracts information from documentation that is marked for deletion and writes it to the project docs in the appropriate files so it is not lost.
-- **/review**: Generates a formatted review file to `docs/reviews/<branch,feature,or roadmap name>.md`.
-
-## `living` directory
-
-The `docs/living` directory is an ignored directory for the user to use. It can be thought of as a scratch or temporary files directory.
-
-## Rules
-
-- The only files that may go in the docs root are `open-questions.md` and `README.md`. Everything else should go in folder named for its `doctype`.
-- By default, `docs/reviews` and `docs/living` should be gitignored.
-
-## Dogfooding
-
-We should dogfood this project with it's own docs system.
+<!-- /struct-docs:index -->
