@@ -1,0 +1,31 @@
+export type ConfigPath = readonly (string | number)[];
+export type ConfigIssue = { path: ConfigPath; message: string };
+export type ConfigFinding = {
+  file: string;
+  line: number;
+  rule: 'config';
+  severity: 'error';
+  message: string;
+};
+export type FieldOptions = {
+  kind: string;
+  required?: boolean;
+  values?: string[];
+  to?: string;
+};
+export type DoctypeOptions = {
+  type?: string;
+  owns?: boolean;
+  gitignored?: boolean;
+  fields?: Record<string, FieldOptions | null>;
+};
+export type Config = {
+  ignore: string[];
+  living: { gitignored: boolean };
+  doctypes: Record<string, DoctypeOptions | null>;
+};
+export type ConfigResult = {
+  config: Config | undefined;
+  findings: ConfigFinding[];
+  lineAt: (path: ConfigPath) => number;
+};

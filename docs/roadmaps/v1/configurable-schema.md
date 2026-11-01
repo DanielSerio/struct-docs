@@ -18,13 +18,16 @@ Acceptance:
 Notes:
 - 2026-11-01 npm run check passed: lint, strict typecheck and four Node tests, including deliberate lint violations.
 
-### config-loading <!-- status: todo -->
+### config-loading <!-- status: done -->
 Intent: `.struct-docs.yml` is read with a real YAML parser and is applied whole or not at all.
 Acceptance:
-- [ ] A repo with no config file loads the defaults with no findings.
-- [ ] Invalid YAML, a duplicate key and an unknown option each produce an error with file and line.
-- [ ] A config holding any error yields no partially applied schema.
+- [x] A repo with no config file loads the defaults with no findings.
+- [x] Invalid YAML, a duplicate key and an unknown option each produce an error with file and line.
+- [x] A config holding any error yields no partially applied schema.
 Deps: project-tooling
+
+Notes:
+- 2026-11-01 npm run check passed all 13 tests; YAML errors, duplicate keys and option errors retain source lines and return no config.
 
 ### doctype-registry <!-- status: todo -->
 Intent: Project entries merge over the default doctypes into the table every check reads.
