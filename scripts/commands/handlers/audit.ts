@@ -1,4 +1,7 @@
-import type { CommandOptions } from '../command-types.js';
-import { pendingCommand } from './pending.js';
+import { auditProject } from '../../check/audit.js';
+import type { CommandOptions, CommandResult } from '../command-types.js';
 
-export const run = (options: CommandOptions) => pendingCommand('audit', options);
+/** Reporting belongs to the shared command shell; audit supplies findings, never progress. */
+export function run(options: CommandOptions): CommandResult {
+  return { findings: auditProject(options.root).findings };
+}

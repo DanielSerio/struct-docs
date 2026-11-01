@@ -84,13 +84,16 @@ Deps: roadmap-model, reference-checks
 Notes:
 - 2026-11-01 npm run check passed all 162 tests; combined pure rules also validate all 17 present governed project documents without findings.
 
-### audit-command <!-- status: todo -->
+### audit-command <!-- status: done -->
 Intent: `docs-lint audit` runs every structural check over the tree and stays silent when clean.
 Acceptance:
-- [ ] A clean fixture and a repo with no docs print nothing and exit 0, including one with a roadmap, since progress belongs to `status`.
-- [ ] Forbidden root files are errors, and unrouted directories and roadmap files over about twelve children count as warnings that `--verbose` lists.
-- [ ] Fixture findings arrive from document, reference, ownership and roadmap rules in one run with deterministic order.
+- [x] A clean fixture and a repo with no docs print nothing and exit 0, including one with a roadmap, since progress belongs to `status`.
+- [x] Forbidden root files are errors, and unrouted directories and roadmap files over about twelve children count as warnings that `--verbose` lists.
+- [x] Fixture findings arrive from document, reference, ownership and roadmap rules in one run with deterministic order.
 Deps: topic-ownership, roadmap-checks
+
+Notes:
+- 2026-11-01 npm run check passed all 171 tests; actual audit process silence, warning detail and combined deterministic findings are verified.
 
 ### derived-repair <!-- status: todo -->
 Intent: Only derived statuses and the generated index are ever written, and repairing twice changes nothing.
