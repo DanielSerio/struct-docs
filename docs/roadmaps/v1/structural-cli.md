@@ -51,13 +51,16 @@ Deps: document-rules
 Notes:
 - 2026-11-01 npm run check passed all 115 tests; reference grammar, inventory resolution, templates and local-only stability are verified without an archive overlay.
 
-### topic-ownership <!-- status: todo -->
+### topic-ownership <!-- status: done -->
 Intent: Two documents cannot claim one topic, and only shared documents count.
 Acceptance:
-- [ ] A duplicate `owns` topic is an error at the field line, naming the other owner and its line, in both documents.
-- [ ] A repeated topic within one document is an invalid value, and `owns` is required unless the doctype disables it.
-- [ ] Fixtures prove gitignored, living, template and ignored documents never create or satisfy a claim.
+- [x] A duplicate `owns` topic is an error at the field line, naming the other owner and its line, in both documents.
+- [x] A repeated topic within one document is an invalid value, and `owns` is required unless the doctype disables it.
+- [x] Fixtures prove gitignored, living, template and ignored documents never create or satisfy a claim.
 Deps: document-rules
+
+Notes:
+- 2026-11-01 npm run check passed all 126 tests; duplicate owners, repeated values and excluded/local-only scope are verified at source lines.
 
 ### roadmap-model <!-- status: todo -->
 Intent: Roadmap files parse into one tree over all roadmaps, with derived statuses and resolved deps.
