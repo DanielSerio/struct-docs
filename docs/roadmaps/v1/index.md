@@ -2,14 +2,14 @@
 id: v1
 title: Struct Docs v1
 type: roadmap
-status: todo
+status: in-progress
 intent: Replace manage-docs with customizable structural checks and prove migration on a repository copy.
 specs: [specs/config, specs/doc-schema, specs/layout, specs/checks, specs/cli, specs/roadmap-schema, specs/roadmap-rollup, specs/skills, specs/packaging, specs/execute-roadmap, specs/project-cli, specs/migration]
 ---
 
 ## Milestones
 
-### configurable-schema <!-- status: todo -->
+### configurable-schema <!-- status: done -->
 Breakout: ./configurable-schema.md
 
 ### structural-cli <!-- status: todo -->

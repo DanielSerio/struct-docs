@@ -1,0 +1,12 @@
+ignore: [vendor/, specs/*.generated.md]
+doctypes:
+  product: null
+  specs:
+    type: requirement
+  guides:
+    type: guide
+    fields:
+      audience: {kind: string}
+  notes:
+    type: note
+    gitignored: true

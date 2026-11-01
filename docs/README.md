@@ -28,6 +28,6 @@ about undecided behavior; only what they cannot answer goes into `open-questions
 
 ## roadmaps
 
-- [v1](roadmaps/v1/index.md) — **todo** — Replace manage-docs with customizable structural checks and prove migration on a repository copy.
+- [v1](roadmaps/v1/index.md) — **in-progress** — Replace manage-docs with customizable structural checks and prove migration on a repository copy.
 
 <!-- /struct-docs:index -->

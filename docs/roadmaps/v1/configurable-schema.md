@@ -2,7 +2,7 @@
 id: configurable-schema
 title: Configurable schema
 type: roadmap-node
-status: todo
+status: done
 intent: A project can define and validate its document schema in one file.
 ---
 
@@ -73,10 +73,14 @@ Deps: doctype-registry, ignore-patterns
 Notes:
 - 2026-11-01 npm run check passed all 38 tests, including protected fields, roadmap glob coverage, reserved types and gitignored ownership conflicts.
 
-### path-classifier <!-- status: todo -->
+### path-classifier <!-- status: done -->
 Intent: One `classify()` answers every path question from the compiled config.
 Acceptance:
-- [ ] Fixtures prove only immediate Markdown children of a doctype directory are governed.
-- [ ] Fixtures distinguish excluded, unrouted and forbidden paths, including a non-Markdown file in the docs root.
-- [ ] A root rule or roadmap path wins over a matching ignore pattern, and no archived classification exists.
+- [x] Fixtures prove only immediate Markdown children of a doctype directory are governed.
+- [x] Fixtures distinguish excluded, unrouted and forbidden paths, including a non-Markdown file in the docs root.
+- [x] A root rule or roadmap path wins over a matching ignore pattern, and no archived classification exists.
 Deps: doctype-registry, ignore-patterns
+
+Notes:
+- 2026-11-01 npm run check passed all 45 tests, including fixture routing, precedence, Windows paths and repository dogfood classification.
+- 2026-11-01 Inherited manage-docs roadmap engine validates grammar and dependencies and computes bootstrap rollups until the structural CLI milestone lands.
