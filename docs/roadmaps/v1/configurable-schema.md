@@ -61,14 +61,17 @@ Deps: project-tooling
 Notes:
 - 2026-11-01 npm run check passed all 31 tests; ported cases pin wildcard depth, anchors, directory boundaries and literal metacharacters.
 
-### locked-policy <!-- status: todo -->
+### locked-policy <!-- status: done -->
 Intent: Config cannot alter what the CLI depends on, and says so at the offending line.
 Acceptance:
-- [ ] Redefining `title`, `type` or `purpose` produces an error with file and line.
-- [ ] Changing, removing or renaming the `roadmaps` doctype, or reusing a roadmap type, produces an error with file and line.
-- [ ] An ignore pattern matching roadmap paths is an error, including a broad glob such as `**`.
-- [ ] A `templates` or `living` doctype key, and `gitignored: true` with `owns: true`, each produce an error with file and line.
+- [x] Redefining `title`, `type` or `purpose` produces an error with file and line.
+- [x] Changing, removing or renaming the `roadmaps` doctype, or reusing a roadmap type, produces an error with file and line.
+- [x] An ignore pattern matching roadmap paths is an error, including a broad glob such as `**`.
+- [x] A `templates` or `living` doctype key, and `gitignored: true` with `owns: true`, each produce an error with file and line.
 Deps: doctype-registry, ignore-patterns
+
+Notes:
+- 2026-11-01 npm run check passed all 38 tests, including protected fields, roadmap glob coverage, reserved types and gitignored ownership conflicts.
 
 ### path-classifier <!-- status: todo -->
 Intent: One `classify()` answers every path question from the compiled config.
