@@ -28,14 +28,17 @@ Acceptance:
 Notes:
 - 2026-11-01 npm run check passed all 89 tests; ported subset, source spans, numeric keys and file-only tree inventory are verified.
 
-### document-rules <!-- status: todo -->
+### document-rules <!-- status: done -->
 Intent: Schema, naming and placement rules run from the compiled registry, through `docs-lint check`.
 Acceptance:
-- [ ] Fixtures produce errors with source lines for missing, unknown and invalid fields, a type-directory mismatch and a non-kebab filename.
-- [ ] A legacy `decisions` field is an error pointing at fold, and a custom doctype needs no status field.
-- [ ] Rules are tested with plain objects, and importing Commander or the file system from a rule fails a test.
-- [ ] `docs-lint check <file>` reports parse, naming and type-placement findings for one file without scanning the tree.
+- [x] Fixtures produce errors with source lines for missing, unknown and invalid fields, a type-directory mismatch and a non-kebab filename.
+- [x] A legacy `decisions` field is an error pointing at fold, and a custom doctype needs no status field.
+- [x] Rules are tested with plain objects, and importing Commander or the file system from a rule fails a test.
+- [x] `docs-lint check <file>` reports parse, naming and type-placement findings for one file without scanning the tree.
 Deps: command-shell, document-reader
+
+Notes:
+- 2026-11-01 npm run check passed all 102 tests; plain-object rules, import purity and real single-file command behavior are verified.
 
 ### reference-checks <!-- status: todo -->
 Intent: Document references resolve on disk, with no archive overlay and no dependence on local-only files.
