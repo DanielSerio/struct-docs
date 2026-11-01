@@ -51,12 +51,15 @@ Deps: doctype-registry
 Notes:
 - 2026-11-01 npm run check passed all 25 tests; fixture values exercise all four grammars and invalid config option source locations.
 
-### ignore-patterns <!-- status: todo -->
+### ignore-patterns <!-- status: done -->
 Intent: The manage-docs ignore subset works from config, pinned by tests here.
 Acceptance:
-- [ ] Ported tests pass for `*`, `**`, trailing slash and leading slash anchoring.
-- [ ] `?` and other characters outside the subset match literally.
+- [x] Ported tests pass for `*`, `**`, trailing slash and leading slash anchoring.
+- [x] `?` and other characters outside the subset match literally.
 Deps: project-tooling
+
+Notes:
+- 2026-11-01 npm run check passed all 31 tests; ported cases pin wildcard depth, anchors, directory boundaries and literal metacharacters.
 
 ### locked-policy <!-- status: todo -->
 Intent: Config cannot alter what the CLI depends on, and says so at the offending line.
