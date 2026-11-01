@@ -10,11 +10,7 @@ specs: [specs/config, specs/doc-schema, specs/layout, specs/checks, specs/cli, s
 ## Milestones
 
 ### configurable-schema <!-- status: todo -->
-Intent: A project can define and validate its document schema in one file.
-Acceptance:
-- [ ] A fixture changes or removes defaults and validates each of the four field kinds.
-- [ ] Locked-field, reserved-name, invalid-YAML and roadmap-ignore attempts produce source-located errors.
-- [ ] Classifier fixtures prove immediate-child scope and distinguish excluded, unrouted and forbidden paths.
+Breakout: ./configurable-schema.md
 
 ### structural-cli <!-- status: todo -->
 Intent: A bundled docs-lint replaces the manage-docs structural gate.
