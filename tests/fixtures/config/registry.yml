@@ -1,0 +1,12 @@
+doctypes:
+  product: null
+  specs:
+    type: requirement
+    owns: false
+    fields:
+      superseded-by: null
+      audience: { kind: string }
+  guides:
+    type: guide
+    fields:
+      audience: { kind: string, required: true }

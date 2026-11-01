@@ -29,13 +29,16 @@ Deps: project-tooling
 Notes:
 - 2026-11-01 npm run check passed all 13 tests; YAML errors, duplicate keys and option errors retain source lines and return no config.
 
-### doctype-registry <!-- status: todo -->
+### doctype-registry <!-- status: done -->
 Intent: Project entries merge over the default doctypes into the table every check reads.
 Acceptance:
-- [ ] A fixture changes a default doctype, adds a custom one, and removes a default with a null entry.
-- [ ] A null field removes an inherited custom field, and omitted entries and fields keep their defaults.
-- [ ] This repo's own `.struct-docs.yml` loads with no findings.
+- [x] A fixture changes a default doctype, adds a custom one, and removes a default with a null entry.
+- [x] A null field removes an inherited custom field, and omitted entries and fields keep their defaults.
+- [x] This repo's own `.struct-docs.yml` loads with no findings.
 Deps: config-loading
+
+Notes:
+- 2026-11-01 npm run check passed all 21 tests, including fixture merges, null removal, isolation and this repository config.
 
 ### field-kinds <!-- status: todo -->
 Intent: Each of the four field kinds compiles to a validator stored on the field.

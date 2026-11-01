@@ -2,8 +2,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { LineCounter, parseDocument } from 'yaml';
 import { defaultConfig } from '../policy/config-defaults.js';
-import type { Config, ConfigFinding, ConfigResult } from '../policy/config-types.js';
+import type { ConfigOptions, ConfigFinding, ConfigResult } from '../policy/config-types.js';
 import { configIssues } from '../policy/config-validation.js';
+import { mergeConfig } from '../policy/config-registry.js';
 import { sourceLine } from './config-source.js';
 
 export const CONFIG_FILE = '.struct-docs.yml';
@@ -30,9 +31,7 @@ export function parseConfig(text: string, file = CONFIG_FILE): ConfigResult {
     file, line: lineAt(path), rule: 'config', severity: 'error', message,
   })));
   if (findings.length) return { config: undefined, findings, lineAt };
-  const defaults = defaultConfig();
-  const options = value as Partial<Config>;
-  const config = { ...defaults, ...options, living: { ...defaults.living, ...options.living } };
+  const config = mergeConfig(value as ConfigOptions);
   return { config, findings, lineAt };
 }
 

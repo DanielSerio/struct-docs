@@ -1,5 +1,6 @@
 import type { ConfigIssue, ConfigPath } from './config-types.js';
 import { isRecord, optionTypes, stringList, unknownOptions } from './config-shape.js';
+import { registryIssues } from './config-registry-validation.js';
 
 function fieldsIssues(value: unknown, path: ConfigPath): ConfigIssue[] {
   if (!isRecord(value)) return [{ path, message: '`fields` must be a mapping' }];
@@ -44,5 +45,5 @@ export function configIssues(value: unknown): ConfigIssue[] {
     }
   }
   if (Object.hasOwn(value, 'doctypes')) issues.push(...doctypesIssues(value.doctypes));
-  return issues;
+  return [...issues, ...registryIssues(value)];
 }

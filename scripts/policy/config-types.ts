@@ -19,10 +19,22 @@ export type DoctypeOptions = {
   gitignored?: boolean;
   fields?: Record<string, FieldOptions | null>;
 };
+export type ConfigOptions = {
+  ignore?: string[];
+  living?: { gitignored?: boolean };
+  doctypes?: Record<string, DoctypeOptions | null>;
+};
+export type FieldDefinition = FieldOptions & { required: boolean };
+export type Doctype = {
+  type: string;
+  owns: boolean;
+  gitignored: boolean;
+  fields: Record<string, FieldDefinition>;
+};
 export type Config = {
   ignore: string[];
   living: { gitignored: boolean };
-  doctypes: Record<string, DoctypeOptions | null>;
+  doctypes: Record<string, Doctype>;
 };
 export type ConfigResult = {
   config: Config | undefined;

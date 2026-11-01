@@ -5,12 +5,12 @@ export const defaultConfig = (): Config => ({
   ignore: [],
   living: { gitignored: true },
   doctypes: {
-    product: { type: 'prd' },
+    product: { type: 'prd', owns: true, gitignored: false, fields: {} },
     specs: {
-      type: 'spec',
+      type: 'spec', owns: true, gitignored: false,
       fields: {
         status: { kind: 'enum', values: ['draft', 'active', 'superseded'], required: true },
-        'superseded-by': { kind: 'reference' },
+        'superseded-by': { kind: 'reference', required: false },
       },
     },
     reviews: {
