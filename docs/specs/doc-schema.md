@@ -41,9 +41,10 @@ Resolve on disk, never through an archive overlay. A deleted target is an error 
 referring field. A reference's `to` restriction requires that directory. Templates are
 existence-checked but their bodies and frontmatter remain free-form.
 
-A tracked document may not reference a document in a gitignored doctype, even when the target
-is present locally: the reference would break on any fresh clone. A gitignored document may
-reference anything.
+A tracked document may not reference a document in a gitignored doctype, or in `living/`
+while `living.gitignored` is true, even when the target is present locally: the reference would
+break on a fresh clone. Check this policy before existence so local files cannot change shared
+findings. A gitignored document may reference any existing document.
 
 Optional fields are omitted rather than filled with sentinel strings. Review subject is
 free-form text, not a reference. General superseded-by references obey the same resolver.

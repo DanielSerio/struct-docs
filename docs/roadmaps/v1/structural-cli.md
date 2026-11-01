@@ -40,13 +40,16 @@ Deps: command-shell, document-reader
 Notes:
 - 2026-11-01 npm run check passed all 102 tests; plain-object rules, import purity and real single-file command behavior are verified.
 
-### reference-checks <!-- status: todo -->
+### reference-checks <!-- status: done -->
 Intent: Document references resolve on disk, with no archive overlay and no dependence on local-only files.
 Acceptance:
-- [ ] A deleted target is an error at the referring field, and bare ids, absolute paths and traversal outside docs are rejected.
-- [ ] A `to` restriction rejects a target in another directory, and a template target is checked only for existence.
-- [ ] A tracked document referencing a gitignored one is an error even when the target exists locally, while a gitignored document may reference anything.
+- [x] A deleted target is an error at the referring field, and bare ids, absolute paths and traversal outside docs are rejected.
+- [x] A `to` restriction rejects a target in another directory, and a template target is checked only for existence.
+- [x] A tracked document referencing a gitignored one is an error even when the target exists locally, while a gitignored document may reference anything.
 Deps: document-rules
+
+Notes:
+- 2026-11-01 npm run check passed all 115 tests; reference grammar, inventory resolution, templates and local-only stability are verified without an archive overlay.
 
 ### topic-ownership <!-- status: todo -->
 Intent: Two documents cannot claim one topic, and only shared documents count.
