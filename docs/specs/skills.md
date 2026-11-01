@@ -1,7 +1,7 @@
 ---
 title: Documentation skills
 type: spec
-status: draft
+status: active
 purpose: Init, audit, roadmap, review and fold workflows and their approval boundaries.
 owns: [initialization-workflow, audit-workflow, roadmap-authoring, review-workflow, fold-workflow]
 ---

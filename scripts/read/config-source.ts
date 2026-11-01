@@ -8,7 +8,7 @@ export function sourceLine(document: Document, counter: LineCounter, path: Confi
   let position = isNode(node) ? node.range?.[0] : 0;
   for (const part of path) {
     if (isMap(node)) {
-      const pair = node.items.find((entry) => isScalar(entry.key) && entry.key.value === part);
+      const pair = node.items.find((entry) => isScalar(entry.key) && String(entry.key.value) === String(part));
       if (!pair) break;
       position = isNode(pair.key) ? pair.key.range?.[0] : position;
       node = pair.value;

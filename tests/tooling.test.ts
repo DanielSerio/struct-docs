@@ -13,7 +13,7 @@ async function rules(source: string, filePath = 'scripts/policy/lint-probe.ts') 
 
 test('source lint rejects explicit any, missing semicolons and enums', async () => {
   assert.ok((await rules('export const value: any = 1;')).includes('@typescript-eslint/no-explicit-any'));
-  assert.ok((await rules('export const value = 1')).includes('semi'));
+  assert.ok((await rules('export const value = 1')).includes('@stylistic/semi'));
   assert.ok((await rules('export enum Value { One }')).includes('no-restricted-syntax'));
 });
 
@@ -31,4 +31,25 @@ test('layer boundaries resolve relative, absolute and file URL imports', async (
     assert.ok((await rules(`import ${JSON.stringify(source)};`)).includes('architecture/layer-imports'));
   }
   assert.equal((await rules("import './kebab-case.js';")).includes('architecture/layer-imports'), false);
+});
+
+test('TypeScript statements and interface/type members require semicolons', async () => {
+  for (const source of ['export type A = string', 'export declare function f(): void']) {
+    assert.ok((await rules(source)).includes('@stylistic/semi'), source);
+    assert.equal((await rules(`${source};`)).includes('@stylistic/semi'), false);
+  }
+  for (const source of ['export interface A {\n  value: string\n}', 'export type A = {\n  value: string\n};',
+    'export type A = { value: string, other: string };']) {
+    assert.ok((await rules(source)).includes('@stylistic/member-delimiter-style'), source);
+  }
+  assert.deepEqual(await rules('export interface A { value: string }'), []);
+  assert.deepEqual(await rules('export type A = { value: string; other: string };'), []);
+});
+
+test('layer boundaries hold when ESLint starts in a subdirectory', async () => {
+  for (const [cwd, filePath] of [['scripts', 'policy/lint-probe.ts'], ['scripts/policy', 'lint-probe.ts']] as const) {
+    const nested = new ESLint({ cwd: path.resolve(cwd) });
+    const [result] = await nested.lintText("import '../check/document.js';", { filePath });
+    assert.ok(result?.messages.some((message) => message.ruleId === 'architecture/layer-imports'), cwd);
+  }
 });

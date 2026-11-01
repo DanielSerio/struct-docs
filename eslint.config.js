@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
+import stylistic from '@stylistic/eslint-plugin';
 import layerImports from './tools/eslint/layer-imports.mjs';
 
 export default tseslint.config(
@@ -10,9 +11,15 @@ export default tseslint.config(
   {
     files: ['**/*.{js,mjs,ts}'],
     languageOptions: { globals: globals.node },
+    plugins: { '@stylistic': stylistic },
     rules: {
       'max-lines': ['error', { max: 99, skipBlankLines: true, skipComments: true }],
-      semi: ['error', 'always'],
+      semi: 'off',
+      '@stylistic/semi': ['error', 'always'],
+      '@stylistic/member-delimiter-style': ['error', {
+        multiline: { delimiter: 'semi', requireLast: true },
+        singleline: { delimiter: 'semi', requireLast: false },
+      }],
       'no-restricted-syntax': ['error', {
         selector: 'TSEnumDeclaration',
         message: 'Use a literal union instead of a TypeScript enum.',
@@ -29,9 +36,9 @@ export default tseslint.config(
     rules: { 'max-lines': 'off' },
   },
   {
-    files: ['scripts/**/*.ts'],
-    ignores: ['**/*.test.ts'],
+    files: ['scripts/**/*.{ts,js,mjs}'],
+    ignores: ['**/*.test.{ts,js,mjs}'],
     plugins: { architecture: { rules: { 'layer-imports': layerImports } } },
-    rules: { 'architecture/layer-imports': 'error' },
+    rules: { 'architecture/layer-imports': ['error', { root: import.meta.dirname }] },
   },
 );

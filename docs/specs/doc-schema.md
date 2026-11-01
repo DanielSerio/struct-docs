@@ -1,7 +1,7 @@
 ---
 title: Document schema and ownership
 type: spec
-status: draft
+status: active
 purpose: Non-roadmap frontmatter, naming, references and declared topic ownership.
 owns: [document-frontmatter, document-references, topic-ownership]
 ---

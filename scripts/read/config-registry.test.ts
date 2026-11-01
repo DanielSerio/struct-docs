@@ -99,3 +99,17 @@ test('the repository config loads as a complete normalized registry without find
   assert.equal(config.doctypes.reviews?.gitignored, true);
   assert.equal(config.doctypes.reviews?.owns, false);
 });
+
+test('null removals reject misspelled doctypes and fields at the offending name', () => {
+  const cases = [
+    ['doctypes:\n  speks: null', 2],
+    ['doctypes:\n  specs:\n    fields:\n      statsu: null', 4],
+    ['doctypes:\n  guides:\n    type: guide\n    fields:\n      audience: null', 5],
+  ] as const;
+  for (const [source, line] of cases) {
+    const result = parseConfig(source, 'null-removal.yml');
+    assert.equal(result.config, undefined);
+    assert.ok(result.findings.some((finding) => finding.file === 'null-removal.yml' &&
+      finding.line === line && /cannot remove/.test(finding.message)));
+  }
+});

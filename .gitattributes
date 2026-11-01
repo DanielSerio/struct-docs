@@ -1,0 +1,4 @@
+# Source stays normalized; generated artifacts retain the build's exact bytes.
+* text=auto
+bin/** -text
+assets/project-cli/** -text

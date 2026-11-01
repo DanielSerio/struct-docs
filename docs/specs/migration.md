@@ -1,7 +1,7 @@
 ---
 title: Manage-docs migration and rehearsal
 type: spec
-status: draft
+status: active
 purpose: Legacy conversion, reference preservation and validation on repository copies.
 owns: [legacy-migration, migration-rehearsal]
 ---

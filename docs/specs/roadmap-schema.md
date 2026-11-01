@@ -1,7 +1,7 @@
 ---
 title: Roadmap schema and body grammar
 type: spec
-status: draft
+status: active
 purpose: How roadmap files are structured and parsed. Status and deps are in specs/roadmap-rollup.
 owns: [roadmap-grammar]
 ---

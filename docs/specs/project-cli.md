@@ -1,7 +1,7 @@
 ---
 title: Project CLI and house-style rule library
 type: spec
-status: draft
+status: active
 purpose: Generated Commander wrapper, plugin discovery and project-owned body rules.
 owns: [project-cli, plugin-discovery, house-style-rules, commit-integration]
 ---

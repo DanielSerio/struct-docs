@@ -1,7 +1,7 @@
 ---
 title: Layout, routing and document removal
 type: spec
-status: draft
+status: active
 purpose: Path classification, generated index contents and retirement of documents.
 owns: [path-classification, document-routing, generated-index, document-retirement]
 ---
@@ -15,17 +15,26 @@ There is no archived classification or existence overlay.
 | --- | --- |
 | README.md | Generated index, no frontmatter |
 | open-questions.md | Governed exact root filename |
-| Any other root file | Error, including non-Markdown files |
+| OS metadata files | Excluded at every depth: `.DS_Store`, `Thumbs.db`, `desktop.ini` |
+| Any other root file | Error, including non-Markdown and legacy config files |
 | living/** | Never linted or indexed |
 | templates/** | Free-form, never linted or indexed |
-| roadmaps/** | Locked roadmap structure |
-| Immediate Markdown child of a configured directory | Governed by that definition |
+| roadmaps/** | Distinct roadmap classification; locked roadmap structure |
+| Immediate `.md` child of a configured directory | Governed; extension is case-insensitive |
+| `.markdown` files | Unrouted unless excluded; never silently treated as assets |
 | Deeper or unknown directory documents | Unrouted, unless excluded |
 | Dot-prefixed paths or configured ignore matches | Excluded |
 
 Root restrictions and locked roadmap policy take priority over ignore matches. Other
-non-Markdown assets within directories are not document-schema inputs. An archive directory
-is legacy content requiring migration, never a special reference target. Create no empty
+non-Markdown assets within directories are not document-schema inputs. Classify files, not
+directories; tree walkers must filter directory entries. Preserve filename case when deriving
+ids from case-insensitive `.md` extensions. Match the short OS metadata allowlist without
+case sensitivity; do not exempt arbitrary root dotfiles such as `.doctypes`.
+
+Why: normal desktop browsing must not fail a commit gate, while unsupported Markdown needs
+to remain visible for routing.
+
+An archive directory is legacy content requiring migration, never a special reference target. Create no empty
 directories; each appears when its first file does.
 
 ## Routing and lifecycle

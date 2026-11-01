@@ -1,7 +1,7 @@
 ---
 title: Roadmap status, dependencies and order
 type: spec
-status: draft
+status: active
 purpose: How roadmap status is derived, how deps resolve, and what the next ready node means.
 owns: [roadmap-rollup, roadmap-dependencies, roadmap-order]
 ---

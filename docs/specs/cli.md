@@ -1,7 +1,7 @@
 ---
 title: CLI architecture and command contract
 type: spec
-status: draft
+status: active
 purpose: Plugin commands, rule interface, layers and local development verification.
 owns: [plugin-cli, rule-contract, architecture-layers, development-gate]
 ---
@@ -66,8 +66,11 @@ The following boundaries are enforced by ESLint, including equivalent absolute i
 
 Keep schema as a registry and validators as field values. One classifier answers all path
 questions. Only repair writes derived docs; initialization has an explicit apply phase.
-Shared types do not import application layers. Favor small functions, dependency injection
-and composition; avoid speculative abstractions.
+Types live in the lowest layer that uses them. Resolve layers relative to the directory
+holding `eslint.config.js`; neither the working directory nor ancestor directory names can
+change enforcement. Source files directly under `scripts/` or in undeclared layers are errors.
+Add a layer to the policy explicitly before using it. Tests are exempt from layer restrictions.
+Favor small functions, dependency injection and composition; avoid speculative abstractions.
 
 ## Verified port foundations
 
@@ -81,9 +84,13 @@ and legacy config expectations; add config kinds, locking, owns and ignored-inde
 Use Node's test runner for pure logic; use process tests only for actual CLI boundaries.
 
 Local check runs ESLint, TypeScript, tests, reproducible-bundle freshness, manifest/path
-validation and dogfood checks. ESLint enforces no explicit any, semicolons and `max-lines`
+validation and dogfood checks. ESLint enforces no explicit any, TypeScript-aware semicolons (including type aliases,
+declarations and member delimiters) and `max-lines`
 under 100, counting code only (`skipBlankLines` and `skipComments`) so rationale comments are
 never squeezed out. Overrides exempt constant files and give tests a higher cap, because tests
 grow by adding cases. Use literal unions rather than TypeScript enums. Commit no CI workflow
 or npm publication setup. The generated bundle and emitted project-CLI files are build output,
 excluded from source lint limits.
+
+Test builds clean their exact `dist/` output directory before compiling. Deleted or renamed
+tests must not survive as stale JavaScript and affect the next run.

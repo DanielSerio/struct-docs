@@ -3,9 +3,10 @@ import { isRecord, stringList } from './config-shape.js';
 import type { ConfigIssue } from './config-types.js';
 import { patternToRegExp } from './ignore-patterns.js';
 
-const lockedFields = new Set(['title', 'type', 'purpose', 'owns']);
-const reservedDirectories = new Set(['roadmaps', 'templates', 'living']);
+export const lockedFields = new Set(['title', 'type', 'purpose', 'owns']);
+export const reservedDirectories = new Set(['roadmaps', 'templates', 'living']);
 const roadmapTypes = new Set(['roadmap', 'roadmap-node']);
+const internalTypes = new Set(['questions']);
 
 /** A root-anchored pattern can reach roadmaps only through its first segment. */
 export function matchesRoadmapPath(pattern: string) {
@@ -36,6 +37,9 @@ export function lockedPolicyIssues(value: unknown): ConfigIssue[] {
     if (!isRecord(definition)) continue;
     if (typeof definition.type === 'string' && roadmapTypes.has(definition.type)) issues.push({
       path: [...path, 'type'], message: `\`${definition.type}\` is a locked roadmap type`,
+    });
+    if (typeof definition.type === 'string' && internalTypes.has(definition.type)) issues.push({
+      path: [...path, 'type'], message: `\`${definition.type}\` is a reserved internal type`,
     });
     const inherited = Object.hasOwn(defaults, directory) ? defaults[directory] : undefined;
     const gitignored = definition.gitignored ?? inherited?.gitignored ?? false;

@@ -1,7 +1,7 @@
 ---
 title: Execute an entire roadmap
 type: spec
-status: draft
+status: active
 purpose: Branch, task delegation, verification and stopping behavior for roadmap execution.
 owns: [roadmap-execution]
 ---

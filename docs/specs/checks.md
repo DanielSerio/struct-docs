@@ -1,7 +1,7 @@
 ---
 title: Checks and safe repairs
 type: spec
-status: draft
+status: active
 purpose: Finding severity, audit scope and the boundary of automatic repair.
 owns: [structural-checks, finding-severity, derived-repairs]
 ---

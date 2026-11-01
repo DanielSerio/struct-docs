@@ -107,3 +107,25 @@ test('the source locator supports sequence items for future ignore-policy findin
   assert.equal(result.lineAt(['ignore', 0]), 2);
   assert.equal(result.lineAt(['ignore', 1]), 3);
 });
+
+test('numeric YAML keys keep semantic errors at the actual nested option', () => {
+  for (const key of ['1', "'1'", '01']) {
+    const source = `doctypes:\n  specs:\n    fields:\n      ${key}:\n        kind: invalid\n`;
+    const result = parseConfig(source);
+    assert.equal(result.config, undefined);
+    assert.equal(result.findings[0]?.line, 5);
+  }
+});
+
+test('loadConfig findings use a stable project-relative name', () => {
+  const root = mkdtempSync(join(tmpdir(), 'struct-docs-config-path-'));
+  try {
+    writeFileSync(join(root, '.struct-docs.yml'), '# Config\nunknown: true\n');
+    const result = loadConfig(root);
+    assert.equal(result.config, undefined);
+    assert.equal(result.findings[0]?.file, '.struct-docs.yml');
+    assert.equal(result.findings[0]?.line, 2);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

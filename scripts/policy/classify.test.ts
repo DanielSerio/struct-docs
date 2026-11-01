@@ -56,7 +56,7 @@ test('roadmap paths retain locked structure even when an ignore would match', ()
   for (const path of ['roadmaps/v1/index.md', 'roadmaps/v1/billing.md',
     'roadmaps/future/deeper/task.md']) {
     assert.deepEqual(classify(path, broad),
-      { cls: 'live', type: 'roadmap-tree', owns: false, gitignored: false }, path);
+      { cls: 'roadmap', owns: false, gitignored: false }, path);
   }
   assert.deepEqual(classify('roadmaps/stray.md', broad), { cls: 'ungoverned' });
   assert.deepEqual(classify('roadmaps/v1/diagram.png', broad), { cls: 'ungoverned', excluded: true });
@@ -92,6 +92,27 @@ test('this repository dogfoods the same config and classifier used by future com
     if (result.cls === 'live') live += 1;
   }
   assert.equal(live > 0, true);
-  assert.equal(ownClassifier.classify('roadmaps/v1/configurable-schema.md').cls, 'live');
+  assert.equal(ownClassifier.classify('roadmaps/v1/configurable-schema.md').cls, 'roadmap');
   assert.deepEqual(ownClassifier.classify('living/starting-prompt.md'), { cls: 'ungoverned', excluded: true });
+});
+
+test('Markdown extensions are case-insensitive and unsupported Markdown remains discoverable', () => {
+  for (const file of ['specs/auth.MD', 'specs/auth.Md']) {
+    assert.equal(classifier.classify(file).cls, 'live');
+  }
+  assert.equal(classifier.classify('roadmaps/v1/index.MD').cls, 'roadmap');
+  for (const file of ['specs/auth.markdown', 'unknown/auth.MARKDOWN', 'roadmaps/v1/index.markdown']) {
+    assert.equal(classifier.isUnrouted(file), true, file);
+  }
+  assert.deepEqual(classifier.classify('living/auth.markdown'), { cls: 'ungoverned', excluded: true });
+  assert.deepEqual(classifier.classify('vendor/auth.markdown'), { cls: 'ungoverned', excluded: true });
+});
+
+test('a small OS metadata allowlist is excluded while legacy config files stay forbidden', () => {
+  for (const file of ['.DS_Store', 'Thumbs.db', 'desktop.ini', 'specs/Thumbs.db']) {
+    assert.deepEqual(classifier.classify(file), { cls: 'ungoverned', excluded: true }, file);
+  }
+  for (const file of ['.doctypes', '.docsignore', '.gitkeep', 'random.db']) {
+    assert.equal(classifier.classify(file).cls, 'forbidden', file);
+  }
 });

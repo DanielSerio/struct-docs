@@ -78,3 +78,19 @@ doctypes:
   assert.equal(result.config.doctypes.guides?.owns, false);
   assert.equal(result.config.doctypes.local?.owns, false);
 });
+
+test('custom doctypes cannot claim internal classifier types', () => {
+  rejected('doctypes:\n  guides:\n    type: questions\n', 3, /reserved internal type/);
+});
+
+test('removing a locked name reports only the locked reason', () => {
+  const cases = [
+    ['doctypes:\n  templates: null\n', /is reserved/],
+    ['doctypes:\n  specs:\n    fields:\n      title: null\n', /system-owned/],
+  ] as const;
+  for (const [source, message] of cases) {
+    const { findings } = parseConfig(source);
+    assert.equal(findings.length, 1, source);
+    assert.match(findings[0]?.message ?? '', message);
+  }
+});

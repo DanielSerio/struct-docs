@@ -6,6 +6,7 @@ import type { ConfigOptions, ConfigFinding, ConfigResult } from '../policy/confi
 import { configIssues } from '../policy/config-validation.js';
 import { mergeConfig } from '../policy/config-registry.js';
 import { sourceLine } from './config-source.js';
+import { referenceTargetIssues } from '../policy/reference-targets.js';
 
 export const CONFIG_FILE = '.struct-docs.yml';
 
@@ -32,13 +33,16 @@ export function parseConfig(text: string, file = CONFIG_FILE): ConfigResult {
   })));
   if (findings.length) return { config: undefined, findings, lineAt };
   const config = mergeConfig(value as ConfigOptions);
-  return { config, findings, lineAt };
+  findings.push(...referenceTargetIssues(config).map(({ path, message }): ConfigFinding => ({
+    file, line: lineAt(path), rule: 'config', severity: 'error', message,
+  })));
+  return { config: findings.length ? undefined : config, findings, lineAt };
 }
 
 export function loadConfig(repoRoot: string): ConfigResult {
   const file = join(repoRoot, CONFIG_FILE);
   try {
-    return parseConfig(readFileSync(file, 'utf8'), file);
+    return parseConfig(readFileSync(file, 'utf8'), CONFIG_FILE);
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       return { config: defaultConfig(), findings: [], lineAt: () => 1 };
