@@ -18,12 +18,15 @@ Acceptance:
 Notes:
 - 2026-11-01 npm run check passed all 69 tests; handler and process tests verify reporting, registration and every exit class.
 
-### document-reader <!-- status: todo -->
+### document-reader <!-- status: done -->
 Intent: Every rule receives one parsed document, read by the frontmatter subset ported from manage-docs.
 Acceptance:
-- [ ] Ported reader tests pass for BOM, quotes and inline comments, and reject nested values, block lists, anchors and multiline scalars.
-- [ ] A parsed document carries its docs-relative path, raw source, lines, frontmatter values with source lines, and classification.
-- [ ] The tree reader returns only files, including `.MD` names with their case preserved, and no archive behavior survives the port.
+- [x] Ported reader tests pass for BOM, quotes and inline comments, and reject nested values, block lists, anchors and multiline scalars.
+- [x] A parsed document carries its docs-relative path, raw source, lines, frontmatter values with source lines, and classification.
+- [x] The tree reader returns only files, including `.MD` names with their case preserved, and no archive behavior survives the port.
+
+Notes:
+- 2026-11-01 npm run check passed all 89 tests; ported subset, source spans, numeric keys and file-only tree inventory are verified.
 
 ### document-rules <!-- status: todo -->
 Intent: Schema, naming and placement rules run from the compiled registry, through `docs-lint check`.
