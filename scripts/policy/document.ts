@@ -1,6 +1,7 @@
 import type { Classification } from './classify.js';
 import type { Config } from './config-types.js';
 import type { Finding, SourceSpan } from './findings.js';
+import type { RoadmapBody } from './roadmap.js';
 
 export type FrontmatterValue = string | readonly string[];
 export type FrontmatterResult =
@@ -18,6 +19,7 @@ export type ParsedDocument<Context extends DocumentContext = DocumentContext> = 
   readonly lines: readonly string[];
   readonly frontmatter: FrontmatterResult;
   readonly classification: Classification;
+  readonly roadmap?: RoadmapBody;
   readonly context?: Readonly<Context>;
 };
 

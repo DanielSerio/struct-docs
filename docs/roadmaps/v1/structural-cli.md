@@ -62,13 +62,16 @@ Deps: document-rules
 Notes:
 - 2026-11-01 npm run check passed all 126 tests; duplicate owners, repeated values and excluded/local-only scope are verified at source lines.
 
-### roadmap-model <!-- status: todo -->
+### roadmap-model <!-- status: done -->
 Intent: Roadmap files parse into one tree over all roadmaps, with derived statuses and resolved deps.
 Acceptance:
-- [ ] Ported body-parser, model, rollup and deps tests pass, including every ordered rollup rule and all-`cut` children.
-- [ ] A bare dep resolves only in its own roadmap and a qualified dep only in the roadmap it names, with two roadmaps holding the same id.
-- [ ] A node with a breakout resolves at that file's rolled-up status, in rollup and in deps alike.
+- [x] Ported body-parser, model, rollup and deps tests pass, including every ordered rollup rule and all-`cut` children.
+- [x] A bare dep resolves only in its own roadmap and a qualified dep only in the roadmap it names, with two roadmaps holding the same id.
+- [x] A node with a breakout resolves at that file's rolled-up status, in rollup and in deps alike.
 Deps: document-reader
+
+Notes:
+- 2026-11-01 npm run check passed all 142 tests; ported parser, rollup table, breakout fixpoint and qualified dependency behavior are verified.
 
 ### roadmap-checks <!-- status: todo -->
 Intent: The ported roadmap suite and draft-spec gate report at source lines.

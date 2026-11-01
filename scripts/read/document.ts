@@ -5,12 +5,16 @@ import type { Classification } from '../policy/classify.js';
 import type { Config } from '../policy/config-types.js';
 import type { DocumentContext, ParsedDocument } from '../policy/document.js';
 import { parseFrontmatter } from './frontmatter.js';
+import { parseBody } from './roadmap-body.js';
 
 /** Pure document construction also lets rule tests use plain source objects. */
 export function parseDocument<Context extends DocumentContext = DocumentContext>(
   path: string, source: string, classification: Classification, context?: Readonly<Context>): ParsedDocument<Context> {
+  const frontmatter = parseFrontmatter(source);
+  const roadmap = classification.cls === 'roadmap' && frontmatter.ok ? parseBody(source, frontmatter.endLine) : undefined;
   return {
-    path, source, lines: source.split(/\r?\n/), frontmatter: parseFrontmatter(source),
+    path, source, lines: source.split(/\r?\n/), frontmatter,
+    ...(roadmap ? { roadmap } : {}),
     classification, ...(context ? { context } : {}),
   };
 }

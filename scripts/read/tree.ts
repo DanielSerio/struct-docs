@@ -20,6 +20,9 @@ export function loadTree(root: string, config: Config) {
     const source = readFileSync(resolve(root, 'docs', path), 'utf8');
     const document = parseDocument(path, source, classification, context);
     documents.push(document);
+    findings.push(...(document.roadmap?.findings ?? []).map(({ line, message }): Finding => ({
+      file: path, line, rule: 'roadmap-body', severity: 'error', message,
+    })));
     if (!document.frontmatter.ok) findings.push({
       file: path, line: document.frontmatter.line, rule: 'frontmatter', severity: 'error',
       message: `frontmatter: ${document.frontmatter.reason}`,
