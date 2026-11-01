@@ -107,13 +107,16 @@ Deps: audit-command
 Notes:
 - 2026-11-01 npm run check passed all 193 tests; exact-byte preservation, withholding, one-pass index consistency and real repair silence are verified.
 
-### init-command <!-- status: todo -->
+### init-command <!-- status: done -->
 Intent: `docs-lint init` surveys and plans without writing, and writes only under `--apply`.
 Acceptance:
-- [ ] Ported survey and plan tests pass on fixtures with content, with no docs, and with legacy `.doctypes` and `.docsignore`, and a plan writes nothing.
-- [ ] `--apply` creates the marker block, generated index and verbatim review template, with no empty directories or placeholder documents.
-- [ ] Running `--apply` twice produces no further changes, and no prose is interpreted to invent `owns` values.
+- [x] Ported survey and plan tests pass on fixtures with content, with no docs, and with legacy `.doctypes` and `.docsignore`, and a plan writes nothing.
+- [x] `--apply` creates the marker block, generated index and verbatim review template, with no empty directories or placeholder documents.
+- [x] Running `--apply` twice produces no further changes, and no prose is interpreted to invent `owns` values.
 Deps: derived-repair
+
+Notes:
+- 2026-11-01 npm run check passed all 205 tests; init preview is read-only, apply is idempotent and template bytes are preserved exactly.
 
 ### plugin-bundle <!-- status: todo -->
 Intent: One committed esbuild bundle carries the CLI, and this repo passes its own gate.
