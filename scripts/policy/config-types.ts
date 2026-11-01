@@ -7,8 +7,10 @@ export type ConfigFinding = {
   severity: 'error';
   message: string;
 };
+export type FieldKind = 'string' | 'enum' | 'list' | 'reference';
+export type FieldValidator = (value: unknown) => string | null;
 export type FieldOptions = {
-  kind: string;
+  kind: FieldKind;
   required?: boolean;
   values?: string[];
   to?: string;
@@ -24,7 +26,7 @@ export type ConfigOptions = {
   living?: { gitignored?: boolean };
   doctypes?: Record<string, DoctypeOptions | null>;
 };
-export type FieldDefinition = FieldOptions & { required: boolean };
+export type FieldDefinition = FieldOptions & { required: boolean; validate: FieldValidator };
 export type Doctype = {
   type: string;
   owns: boolean;

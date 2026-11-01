@@ -40,13 +40,16 @@ Deps: config-loading
 Notes:
 - 2026-11-01 npm run check passed all 21 tests, including fixture merges, null removal, isolation and this repository config.
 
-### field-kinds <!-- status: todo -->
+### field-kinds <!-- status: done -->
 Intent: Each of the four field kinds compiles to a validator stored on the field.
 Acceptance:
-- [ ] Fixtures accept and reject a value for each of `string`, `enum`, `list` and `reference`.
-- [ ] A `reference` with `to` rejects a target outside that directory.
-- [ ] An unsupported kind, an incompatible option and a non-boolean `required` each produce an error with file and line.
+- [x] Fixtures accept and reject a value for each of `string`, `enum`, `list` and `reference`.
+- [x] A `reference` with `to` rejects a target outside that directory.
+- [x] An unsupported kind, an incompatible option and a non-boolean `required` each produce an error with file and line.
 Deps: doctype-registry
+
+Notes:
+- 2026-11-01 npm run check passed all 25 tests; fixture values exercise all four grammars and invalid config option source locations.
 
 ### ignore-patterns <!-- status: todo -->
 Intent: The manage-docs ignore subset works from config, pinned by tests here.

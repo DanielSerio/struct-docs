@@ -1,3 +1,4 @@
+import { schemaMetadata } from '../../tests/utils/schema-metadata.js';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -11,7 +12,7 @@ test('missing config loads independent defaults without findings', () => {
   try {
     const result = loadConfig(root);
     assert.deepEqual(result.findings, []);
-    assert.deepEqual(result.config, defaultConfig());
+    assert.deepEqual(schemaMetadata(result.config), schemaMetadata(defaultConfig()));
     assert.ok(result.config);
     result.config.ignore.push('local/');
     assert.deepEqual(loadConfig(root).config?.ignore, []);
@@ -65,7 +66,7 @@ test('root lists, scalars and explicit null are rejected while empty configs use
     assert.ok(result.findings.length > 0, source);
   }
   for (const source of ['', '# Project defaults', '{}']) {
-    assert.deepEqual(parseConfig(source).config, defaultConfig());
+    assert.deepEqual(schemaMetadata(parseConfig(source).config), schemaMetadata(defaultConfig()));
     assert.deepEqual(parseConfig(source).findings, []);
   }
 });

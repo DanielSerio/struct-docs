@@ -1,3 +1,4 @@
+import { compileField } from './field-compiler.js';
 import { defaultConfig } from './config-defaults.js';
 import type { Config, ConfigOptions, Doctype, DoctypeOptions } from './config-types.js';
 
@@ -6,7 +7,7 @@ function mergeDoctype(options: DoctypeOptions, inherited?: Doctype): Doctype {
   for (const [name, field] of Object.entries(options.fields ?? {})) {
     if (field === null) delete fields[name];
     // Replace a field as a unit: changing kind must not inherit incompatible options.
-    else fields[name] = { ...field, required: field.required ?? false };
+    else fields[name] = compileField(field);
   }
   const gitignored = options.gitignored ?? inherited?.gitignored ?? false;
   const type = options.type ?? inherited?.type;

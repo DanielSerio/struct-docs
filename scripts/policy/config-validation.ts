@@ -1,3 +1,4 @@
+import { fieldOptionIssues } from './field-options.js';
 import type { ConfigIssue, ConfigPath } from './config-types.js';
 import { isRecord, optionTypes, stringList, unknownOptions } from './config-shape.js';
 import { registryIssues } from './config-registry-validation.js';
@@ -14,7 +15,7 @@ function fieldsIssues(value: unknown, path: ConfigPath): ConfigIssue[] {
     if (Object.hasOwn(field, 'values') && !stringList(field.values)) {
       issues.push({ path: [...at, 'values'], message: '`values` must be a list of strings' });
     }
-    return issues;
+    return [...issues, ...fieldOptionIssues(field, at)];
   });
 }
 

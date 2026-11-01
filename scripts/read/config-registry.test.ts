@@ -1,3 +1,4 @@
+import { schemaMetadata } from '../../tests/utils/schema-metadata.js';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -26,7 +27,7 @@ test('fixture changes a default, adds a custom doctype and removes an inherited 
   assert.equal(config.doctypes.specs?.type, 'requirement');
   assert.equal(config.doctypes.specs?.owns, false);
   assert.equal(config.doctypes.specs?.gitignored, false);
-  assert.deepEqual(config.doctypes.guides, {
+  assert.deepEqual(schemaMetadata(config.doctypes.guides), {
     type: 'guide', owns: true, gitignored: false,
     fields: { audience: { kind: 'string', required: true } },
   });
@@ -37,22 +38,22 @@ test('field null removes an inherited field while omitted entries and fields sur
   const { config } = parseConfig(readFileSync(file, 'utf8'));
   assert.ok(config);
   assert.equal(Object.hasOwn(config.doctypes.specs?.fields ?? {}, 'superseded-by'), false);
-  assert.deepEqual(config.doctypes.specs?.fields.status, defaultConfig().doctypes.specs?.fields.status);
-  assert.deepEqual(config.doctypes.reviews, defaultConfig().doctypes.reviews);
-  assert.deepEqual(config.doctypes.specs?.fields.audience, { kind: 'string', required: false });
+  assert.deepEqual(schemaMetadata(config.doctypes.specs?.fields.status), schemaMetadata(defaultConfig().doctypes.specs?.fields.status));
+  assert.deepEqual(schemaMetadata(config.doctypes.reviews), schemaMetadata(defaultConfig().doctypes.reviews));
+  assert.deepEqual(schemaMetadata(config.doctypes.specs?.fields.audience), { kind: 'string', required: false });
 });
 
 test('field replacements do not retain options from the prior kind', () => {
   const { config, findings } = parseConfig('doctypes: {specs: {fields: {status: {kind: string}}}}');
   assert.deepEqual(findings, []);
-  assert.deepEqual(config?.doctypes.specs?.fields.status, { kind: 'string', required: false });
+  assert.deepEqual(schemaMetadata(config?.doctypes.specs?.fields.status), { kind: 'string', required: false });
 });
 
 test('a partial default doctype inherits its type, flags and fields', () => {
   const { config, findings } = parseConfig('doctypes: {specs: {owns: false}}');
   assert.deepEqual(findings, []);
-  assert.deepEqual(config?.doctypes.specs, { ...defaultConfig().doctypes.specs, owns: false });
-  assert.deepEqual(parseConfig('doctypes: {}').config, defaultConfig());
+  assert.deepEqual(schemaMetadata(config?.doctypes.specs), schemaMetadata({ ...defaultConfig().doctypes.specs, owns: false }));
+  assert.deepEqual(schemaMetadata(parseConfig('doctypes: {}').config), schemaMetadata(defaultConfig()));
 });
 
 test('gitignored doctypes automatically own no topics, including inherited ownership', () => {

@@ -1,0 +1,9 @@
+doctypes:
+  guides:
+    type: guide
+    fields:
+      audience: {kind: string, required: true}
+      stage: {kind: enum, values: [draft, active]}
+      tags: {kind: list}
+      related: {kind: reference}
+      template: {kind: reference, to: templates}
