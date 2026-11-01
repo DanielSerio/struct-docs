@@ -12,7 +12,7 @@ specs: [specs/config, specs/doc-schema, specs/layout, specs/checks, specs/cli, s
 ### configurable-schema <!-- status: done -->
 Breakout: ./configurable-schema.md
 
-### structural-cli <!-- status: in-progress -->
+### structural-cli <!-- status: done -->
 Deps: configurable-schema
 Breakout: ./structural-cli.md
 

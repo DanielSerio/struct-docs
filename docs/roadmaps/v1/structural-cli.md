@@ -2,7 +2,7 @@
 id: structural-cli
 title: Structural CLI
 type: roadmap-node
-status: in-progress
+status: done
 intent: A bundled docs-lint replaces the manage-docs structural gate.
 ---
 
@@ -118,10 +118,13 @@ Deps: derived-repair
 Notes:
 - 2026-11-01 npm run check passed all 205 tests; init preview is read-only, apply is idempotent and template bytes are preserved exactly.
 
-### plugin-bundle <!-- status: todo -->
+### plugin-bundle <!-- status: done -->
 Intent: One committed esbuild bundle carries the CLI, and this repo passes its own gate.
 Acceptance:
-- [ ] `bin/docs-lint.mjs` runs `audit` from a temporary copy with no `node_modules`.
-- [ ] `npm run check` rebuilds in a temporary directory, compares exact bytes, and when stale fails naming the regeneration command.
-- [ ] `docs-lint audit` on this repo exits 0 and prints nothing after `docs-lint repair`.
+- [x] `bin/docs-lint.mjs` runs `audit` from a temporary copy with no `node_modules`.
+- [x] `npm run check` rebuilds in a temporary directory, compares exact bytes, and when stale fails naming the regeneration command.
+- [x] `docs-lint audit` on this repo exits 0 and prints nothing after `docs-lint repair`.
 Deps: init-command
+
+Notes:
+- 2026-11-01 npm run check passed all 208 tests; isolated bundle execution, exact-byte freshness and bundled init asset lookup are verified.
