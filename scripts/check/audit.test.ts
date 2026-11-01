@@ -21,7 +21,7 @@ test('audit composes document, reference, ownership and roadmap findings in sour
     for (const rule of ['schema', 'reference', 'ownership', 'roadmap-dependency', 'frontmatter', 'roadmap-body', 'layout']) {
       assert.equal(rules.has(rule), true, rule);
     }
-    assert.equal(result.findings[0]?.file, 'notes.txt');
+    assert.equal(result.findings.find((finding) => finding.severity === 'error')?.file, 'notes.txt');
     assert.equal(result.findings.filter((finding) => finding.rule === 'roadmap-body').length, 1);
     const owners = result.findings.filter((finding) => finding.rule === 'ownership');
     assert.deepEqual(owners.map((finding) => finding.file), ['specs/auth.md', 'specs/other.md']);
@@ -61,16 +61,16 @@ test('no-specs warnings follow the final registry and treat an empty list as no 
     const warning = auditProject(root).findings.filter((finding) => finding.rule === 'roadmap-specs');
     assert.equal(warning.length, 1);
     writeFileSync(join(root, '.struct-docs.yml'), 'doctypes: {specs: null}\n');
-    assert.deepEqual(auditProject(root).findings, []);
+    assert.deepEqual(auditProject(root).findings.filter((finding) => finding.rule === 'roadmap-specs'), []);
   });
 });
 
 test('unrouted documents warn once per directory and large roadmaps warn without a size cap', () => {
   const body = Array.from({ length: 13 }, (_, index) => leafSource(`task-${index}`)).join('\n');
-  tempDocs({ ...cleanAuditFiles(), 'guides/a.md': 'notes', 'guides/nested/b.markdown': 'notes',
+  tempDocs(cleanAuditFiles({ 'guides/a.md': 'notes', 'guides/nested/b.markdown': 'notes',
     'decisions/old.md': 'legacy',
     'roadmaps/v1/index.md': rootSource('v1', body, 'specs: [specs/auth]\n'),
-  }, (root) => {
+  }), (root) => {
     const findings = auditProject(root).findings;
     assert.equal(findings.length, 3);
     assert.ok(findings.every((finding) => finding.severity === 'warning'));

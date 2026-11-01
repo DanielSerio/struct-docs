@@ -28,3 +28,11 @@ test('repair labels are per finding and never change exit status', () => {
   assert.match(formatReport([{ ...repair, repair: { ...repair.repair, applied: true } }]), /repaired/);
   assert.equal(findingsExitCode([warning, repair, error]), 1);
 });
+
+
+test('embedded source line breaks remain escaped inside one diagnostic line', () => {
+  const report = formatReport([{ file: 'specs/bad\nname.md', line: 4, rule: 'fixture', severity: 'error',
+    message: 'status is \r\n, should be todo' }]);
+  assert.equal(report, 'specs/bad\\nname.md:4 - status is \\r\\n, should be todo\n');
+  assert.equal(report.split('\n').length, 2);
+});

@@ -1,7 +1,10 @@
 import { auditProject } from '../../check/audit.js';
+import { applyRepairs } from '../../repair/apply.js';
 import type { CommandOptions, CommandResult } from '../command-types.js';
 
-/** Reporting belongs to the shared command shell; audit supplies findings, never progress. */
+/** Reporting belongs to the shared shell, and only the repair layer mutates derived docs. */
 export function run(options: CommandOptions): CommandResult {
-  return { findings: auditProject(options.root).findings };
+  const result = auditProject(options.root);
+  if (options.fix && result.ok) applyRepairs(result.tree, result.findings);
+  return { findings: result.findings };
 }

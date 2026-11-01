@@ -95,14 +95,17 @@ Deps: topic-ownership, roadmap-checks
 Notes:
 - 2026-11-01 npm run check passed all 171 tests; actual audit process silence, warning detail and combined deterministic findings are verified.
 
-### derived-repair <!-- status: todo -->
+### derived-repair <!-- status: done -->
 Intent: Only derived statuses and the generated index are ever written, and repairing twice changes nothing.
 Acceptance:
-- [ ] Ported index and repair tests pass: the block between `struct-docs:index` markers is rewritten, with outside content and line endings preserved.
-- [ ] `docs-lint repair` prints nothing, a second run writes nothing, and `audit --fix` labels each repair it made.
-- [ ] A roadmap holding any error, including a failed descendant parse, keeps its statuses while unrelated roadmaps and the index still repair.
-- [ ] The index is byte-identical with gitignored documents present and absent, and repairs never invent purpose, topics or acceptance.
+- [x] Ported index and repair tests pass: the block between `struct-docs:index` markers is rewritten, with outside content and line endings preserved.
+- [x] `docs-lint repair` prints nothing, a second run writes nothing, and `audit --fix` labels each repair it made.
+- [x] A roadmap holding any error, including a failed descendant parse, keeps its statuses while unrelated roadmaps and the index still repair.
+- [x] The index is byte-identical with gitignored documents present and absent, and repairs never invent purpose, topics or acceptance.
 Deps: audit-command
+
+Notes:
+- 2026-11-01 npm run check passed all 193 tests; exact-byte preservation, withholding, one-pass index consistency and real repair silence are verified.
 
 ### init-command <!-- status: todo -->
 Intent: `docs-lint init` surveys and plans without writing, and writes only under `--apply`.

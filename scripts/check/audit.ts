@@ -10,6 +10,10 @@ import { referenceRule } from './reference-rule.js';
 import { ownershipRule } from './ownership-rule.js';
 import { layoutFindings } from './layout-findings.js';
 import { roadmapWarnings } from './roadmap-warnings.js';
+import { readReadme } from '../read/readme.js';
+import { createDerivedContext, derivedStatusRule } from '../roadmap/derived-status.js';
+import { indexFindings } from './index-finding.js';
+import { projectIndex } from '../policy/project-index.js';
 
 export type AuditResult =
   | { ok: false; findings: Finding[] }
@@ -27,5 +31,8 @@ export function auditProject(root: string): AuditResult {
     const local = document.classification.cls === 'roadmap' ? roadmapRule(document) : documentRule(document);
     findings.push(...local, ...referenceRule(document), ...ownershipRule(document));
   }
+  const derivedContext = createDerivedContext(context, findings);
+  const statuses = tree.documents.flatMap((document) => derivedStatusRule({ ...document, context: derivedContext }));
+  findings.push(...statuses, ...indexFindings(projectIndex(tree, statuses), readReadme(root)));
   return { ok: true, tree, context, findings: sortFindings(findings) };
 }

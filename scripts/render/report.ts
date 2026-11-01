@@ -1,6 +1,8 @@
 import type { Finding } from '../policy/findings.js';
 
-const line = (finding: Finding) => `${finding.file}:${finding.line} - ${finding.message}`;
+// Source scalars and paths may contain escaped line breaks; one finding still prints one line.
+const display = (value: string) => value.replaceAll('\r', '\\r').replaceAll('\n', '\\n');
+const line = (finding: Finding) => `${display(finding.file)}:${finding.line} - ${display(finding.message)}`;
 const repairLabel = (finding: Finding) => {
   if (finding.severity !== 'repairable') return '';
   if (finding.repair.applied) return 'repaired';

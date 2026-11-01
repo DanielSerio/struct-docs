@@ -30,8 +30,8 @@ test('real audit errors use the reporter and do not print roadmap progress', () 
 });
 
 test('warning-only audits exit zero, count by default and list deterministic detail with verbose', () => {
-  tempDocs({ ...cleanAuditFiles(), 'guides/z.md': 'notes', 'guides/a.md': 'notes',
-    'decisions/old.md': 'legacy' }, (root) => {
+  tempDocs(cleanAuditFiles({ 'guides/z.md': 'notes', 'guides/a.md': 'notes',
+    'decisions/old.md': 'legacy' }), (root) => {
     const counted = invoke(root);
     assert.equal(counted.status, 0, counted.stderr);
     assert.equal(counted.stdout, '2 warnings (--verbose to list)\n');
