@@ -73,13 +73,16 @@ Deps: document-reader
 Notes:
 - 2026-11-01 npm run check passed all 142 tests; ported parser, rollup table, breakout fixpoint and qualified dependency behavior are verified.
 
-### roadmap-checks <!-- status: todo -->
+### roadmap-checks <!-- status: done -->
 Intent: The ported roadmap suite and draft-spec gate report at source lines.
 Acceptance:
-- [ ] Fixtures produce errors for duplicate tree-wide ids, missing leaf acceptance, misnamed breakouts, invalid node fields, missing deps and cycles within and across roadmaps.
-- [ ] A cut leaf lacking both superseded-by and Notes, a parent duplicating its breakout's title or intent, and a root id unlike its directory are errors.
-- [ ] An in-progress or done milestone depending on a draft spec is an error, while a custom document without a status is not treated as a draft spec.
+- [x] Fixtures produce errors for duplicate tree-wide ids, missing leaf acceptance, misnamed breakouts, invalid node fields, missing deps and cycles within and across roadmaps.
+- [x] A cut leaf lacking both superseded-by and Notes, a parent duplicating its breakout's title or intent, and a root id unlike its directory are errors.
+- [x] An in-progress or done milestone depending on a draft spec is an error, while a custom document without a status is not treated as a draft spec.
 Deps: roadmap-model, reference-checks
+
+Notes:
+- 2026-11-01 npm run check passed all 162 tests; combined pure rules also validate all 17 present governed project documents without findings.
 
 ### audit-command <!-- status: todo -->
 Intent: `docs-lint audit` runs every structural check over the tree and stays silent when clean.
