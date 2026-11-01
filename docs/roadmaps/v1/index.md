@@ -12,14 +12,9 @@ specs: [specs/config, specs/doc-schema, specs/layout, specs/checks, specs/cli, s
 ### configurable-schema <!-- status: done -->
 Breakout: ./configurable-schema.md
 
-### structural-cli <!-- status: todo -->
-Intent: A bundled docs-lint replaces the manage-docs structural gate.
-Acceptance:
-- [ ] Ported parser, command, roadmap, reference, index and repair tests pass with archive behavior removed.
-- [ ] Duplicate owns claims name both owners at source lines; deleted-reference fixtures fail.
-- [ ] Clean audit and repair are silent, repairs are idempotent, and gitignored documents never change the index or ownership results.
-- [ ] Local lint, typecheck, tests and bundle-freshness checks pass, and the bundle runs without npm install.
+### structural-cli <!-- status: in-progress -->
 Deps: configurable-schema
+Breakout: ./structural-cli.md
 
 ### roadmap-status <!-- status: todo -->
 Intent: A person or skill can ask where a roadmap stands and what is next.
