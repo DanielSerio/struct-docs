@@ -40,12 +40,15 @@ Acceptance:
 Notes:
 - 2026-11-02 npm run check passed all 242 tests; both skills were reviewed against their owner spec, and temporary new/breakout examples pass audit with nested next-ready output and an idempotent repair.
 
-### review-skill <!-- status: todo -->
+### review-skill <!-- status: done -->
 Intent: Reviews follow the project template and a repeat review of one subject replaces the last.
 Acceptance:
-- [ ] The skill stops and points at init when `docs/templates/code-review-v1.md` or the named template is missing.
-- [ ] Reviews are written to `docs/reviews/<slug>.md` with no date prefix, with required `subject` and `template`, and a second review of the same slug overwrites the first.
-- [ ] Criticality, the five 1-10 ratings and the flag thresholds match `specs/skills`, and a project template's changes take precedence.
+- [x] The skill stops and points at init when `docs/templates/code-review-v1.md` or the named template is missing.
+- [x] Reviews are written to `docs/reviews/<slug>.md` with no date prefix, with required `subject` and `template`, and a second review of the same slug overwrites the first.
+- [x] Criticality, the five 1-10 ratings and the flag thresholds match `specs/skills`, and a project template's changes take precedence.
+
+Notes:
+- 2026-11-02 npm run check passed all 242 tests; template-first and rating policy were reviewed, and temporary reviews validate stable overwrite, required metadata and preservation of project template changes.
 
 ### fold-skill <!-- status: todo -->
 Intent: Fold merges only the sources a person names, and deletes them only once their content is accounted for.
