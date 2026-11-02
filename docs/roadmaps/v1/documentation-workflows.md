@@ -19,13 +19,16 @@ Acceptance:
 Notes:
 - 2026-11-02 npm run check passed all 236 tests; marker gating, single-file bounded feedback, path-keyed config/docs sentinels and silent failures are verified by real hook processes.
 
-### stop-hook <!-- status: todo -->
+### stop-hook <!-- status: done -->
 Intent: Derived statuses and the index stay current at the end of a turn without a tree scan on quiet turns.
 Acceptance:
-- [ ] With no sentinel, the hook exits without reading the docs tree.
-- [ ] With a sentinel, it repairs only derived statuses and index content, prints nothing, and clears the sentinel only after the repair succeeds.
-- [ ] A failed repair keeps the sentinel for a retry and still exits 0.
+- [x] With no sentinel, the hook exits without reading the docs tree.
+- [x] With a sentinel, it repairs only derived statuses and index content, prints nothing, and clears the sentinel only after the repair succeeds.
+- [x] A failed repair keeps the sentinel for a retry and still exits 0.
 Deps: post-write-hook
+
+Notes:
+- 2026-11-02 npm run check passed all 242 tests; quiet-turn read probes, derived-only repairs, shared sentinel handoff and failure/timeout retries are verified.
 
 ### audit-roadmap-skills <!-- status: todo -->
 Intent: Audit and roadmap skills drive the bundled CLI rather than reasoning about compliance themselves.
