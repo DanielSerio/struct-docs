@@ -60,12 +60,15 @@ Acceptance:
 Notes:
 - 2026-11-02 npm run check passed all 242 tests; a temporary named-source rehearsal preserved preapproval bytes/mtimes, applied its accounted plan, rewrote repo-wide references and audited clean with an idempotent repair.
 
-### init-skill <!-- status: todo -->
+### init-skill <!-- status: done -->
 Intent: Init seeds docs from what a project already has and changes an existing setup only with approval.
 Acceptance:
-- [ ] On a legacy manage-docs fixture copy, the skill shows the proposed config, per-file moves and `owns` topics, and writes nothing before approval.
-- [ ] It applies through `docs-lint init --apply`, seeding the review template verbatim, and creates no empty directories or placeholder documents.
-- [ ] Unrouted documents get a custom type or a recorded exclusion with a reason, never a type guessed from a directory name.
+- [x] On a legacy manage-docs fixture copy, the skill shows the proposed config, per-file moves and `owns` topics, and writes nothing before approval.
+- [x] It applies through `docs-lint init --apply`, seeding the review template verbatim, and creates no empty directories or placeholder documents.
+- [x] Unrouted documents get a custom type or a recorded exclusion with a reason, never a type guessed from a directory name.
+
+Notes:
+- 2026-11-02 npm run check passed all 243 tests; the committed legacy-copy fixture and approved test plan verify preapproval no-write refusal, retained types/reasons/owns, preserved progress, exact template seeding and no-op repeat application without placeholders.
 
 ### plugin-manifest <!-- status: todo -->
 Intent: A git install loads five skills and two hooks with no npm install or global settings edits.
