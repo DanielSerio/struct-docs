@@ -2,7 +2,7 @@
 id: roadmap-status
 title: Roadmap status
 type: roadmap-node
-status: in-progress
+status: done
 intent: A person or skill can ask where a roadmap stands and what is next.
 ---
 
@@ -30,11 +30,14 @@ Deps: progress-view
 Notes:
 - 2026-11-02 npm run check passed all 218 tests; leaf ordering, scoped ancestor gates, qualified deps and all readiness outcomes are verified.
 
-### status-command <!-- status: todo -->
+### status-command <!-- status: done -->
 Intent: `docs-lint status [file]` prints the report and changes nothing.
 Acceptance:
-- [ ] `docs-lint status` prints every roadmap's tree and next ready node and exits 0, even when the report is unchanged.
-- [ ] `docs-lint status <file>` reports only that roadmap file's descendants, with deps still resolved against every roadmap, and a path outside `docs/roadmaps/` is a usage error exiting 2.
-- [ ] A roadmap that cannot be modeled exits 1 and points at `docs-lint audit`, and a process test proves no file is written in any case.
-- [ ] The committed bundle passes its freshness check, and `docs-lint status` on this repo names a leaf as next.
+- [x] `docs-lint status` prints every roadmap's tree and next ready node and exits 0, even when the report is unchanged.
+- [x] `docs-lint status <file>` reports only that roadmap file's descendants, with deps still resolved against every roadmap, and a path outside `docs/roadmaps/` is a usage error exiting 2.
+- [x] A roadmap that cannot be modeled exits 1 and points at `docs-lint audit`, and a process test proves no file is written in any case.
+- [x] The committed bundle passes its freshness check, and `docs-lint status` on this repo names a leaf as next.
 Deps: next-ready
+
+Notes:
+- 2026-11-02 npm run check passed all 230 tests; process snapshots prove read-only exits 0/1/2, and the fresh copied bundle supports full and scoped status without dependencies.

@@ -1,7 +1,7 @@
 import type { Command } from 'commander';
 import type { Finding } from '../policy/findings.js';
 
-export type CommandName = 'init' | 'audit' | 'check' | 'repair';
+export type CommandName = 'init' | 'audit' | 'check' | 'repair' | 'status';
 export type CommandOptions = {
   root: string;
   file?: string;

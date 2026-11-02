@@ -7328,10 +7328,10 @@ var require_resolve_block_map = __commonJS({
       let offset = bm.offset;
       let commentEnd = null;
       for (const collItem of bm.items) {
-        const { start, key, sep: sep5, value: value2 } = collItem;
+        const { start, key, sep: sep6, value: value2 } = collItem;
         const keyProps = resolveProps.resolveProps(start, {
           indicator: "explicit-key-ind",
-          next: key ?? sep5?.[0],
+          next: key ?? sep6?.[0],
           offset,
           onError,
           parentIndent: bm.indent,
@@ -7345,7 +7345,7 @@ var require_resolve_block_map = __commonJS({
             else if ("indent" in key && key.indent !== bm.indent)
               onError(offset, "BAD_INDENT", startColMsg);
           }
-          if (!keyProps.anchor && !keyProps.tag && !sep5) {
+          if (!keyProps.anchor && !keyProps.tag && !sep6) {
             commentEnd = keyProps.end;
             if (keyProps.comment) {
               if (map.comment)
@@ -7369,7 +7369,7 @@ var require_resolve_block_map = __commonJS({
         ctx.atKey = false;
         if (utilMapIncludes.mapIncludes(ctx, map.items, keyNode))
           onError(keyStart, "DUPLICATE_KEY", "Map keys must be unique");
-        const valueProps = resolveProps.resolveProps(sep5 ?? [], {
+        const valueProps = resolveProps.resolveProps(sep6 ?? [], {
           indicator: "map-value-ind",
           next: value2,
           offset: keyNode.range[2],
@@ -7385,7 +7385,7 @@ var require_resolve_block_map = __commonJS({
             if (ctx.options.strict && keyProps.start < valueProps.found.offset - 1024)
               onError(keyNode.range, "KEY_OVER_1024_CHARS", "The : indicator must be at most 1024 chars after the start of an implicit block mapping key");
           }
-          const valueNode = value2 ? composeNode(ctx, value2, valueProps, onError) : composeEmptyNode(ctx, offset, sep5, null, valueProps, onError);
+          const valueNode = value2 ? composeNode(ctx, value2, valueProps, onError) : composeEmptyNode(ctx, offset, sep6, null, valueProps, onError);
           if (ctx.schema.compat)
             utilFlowIndentCheck.flowIndentCheck(bm.indent, value2, onError);
           offset = valueNode.range[2];
@@ -7476,7 +7476,7 @@ var require_resolve_end = __commonJS({
       let comment = "";
       if (end) {
         let hasSpace = false;
-        let sep5 = "";
+        let sep6 = "";
         for (const token of end) {
           const { source, type } = token;
           switch (type) {
@@ -7490,13 +7490,13 @@ var require_resolve_end = __commonJS({
               if (!comment)
                 comment = cb;
               else
-                comment += sep5 + cb;
-              sep5 = "";
+                comment += sep6 + cb;
+              sep6 = "";
               break;
             }
             case "newline":
               if (comment)
-                sep5 += source;
+                sep6 += source;
               hasSpace = true;
               break;
             default:
@@ -7539,18 +7539,18 @@ var require_resolve_flow_collection = __commonJS({
       let offset = fc.offset + fc.start.source.length;
       for (let i = 0; i < fc.items.length; ++i) {
         const collItem = fc.items[i];
-        const { start, key, sep: sep5, value: value2 } = collItem;
+        const { start, key, sep: sep6, value: value2 } = collItem;
         const props = resolveProps.resolveProps(start, {
           flow: fcName,
           indicator: "explicit-key-ind",
-          next: key ?? sep5?.[0],
+          next: key ?? sep6?.[0],
           offset,
           onError,
           parentIndent: fc.indent,
           startOnNewline: false
         });
         if (!props.found) {
-          if (!props.anchor && !props.tag && !sep5 && !value2) {
+          if (!props.anchor && !props.tag && !sep6 && !value2) {
             if (i === 0 && props.comma)
               onError(props.comma, "UNEXPECTED_TOKEN", `Unexpected , in ${fcName}`);
             else if (i < fc.items.length - 1)
@@ -7604,8 +7604,8 @@ var require_resolve_flow_collection = __commonJS({
             }
           }
         }
-        if (!isMap2 && !sep5 && !props.found) {
-          const valueNode = value2 ? composeNode(ctx, value2, props, onError) : composeEmptyNode(ctx, props.end, sep5, null, props, onError);
+        if (!isMap2 && !sep6 && !props.found) {
+          const valueNode = value2 ? composeNode(ctx, value2, props, onError) : composeEmptyNode(ctx, props.end, sep6, null, props, onError);
           coll.items.push(valueNode);
           offset = valueNode.range[2];
           if (isBlock(value2))
@@ -7617,7 +7617,7 @@ var require_resolve_flow_collection = __commonJS({
           if (isBlock(key))
             onError(keyNode.range, "BLOCK_IN_FLOW", blockMsg);
           ctx.atKey = false;
-          const valueProps = resolveProps.resolveProps(sep5 ?? [], {
+          const valueProps = resolveProps.resolveProps(sep6 ?? [], {
             flow: fcName,
             indicator: "map-value-ind",
             next: value2,
@@ -7628,8 +7628,8 @@ var require_resolve_flow_collection = __commonJS({
           });
           if (valueProps.found) {
             if (!isMap2 && !props.found && ctx.options.strict) {
-              if (sep5)
-                for (const st of sep5) {
+              if (sep6)
+                for (const st of sep6) {
                   if (st === valueProps.found)
                     break;
                   if (st.type === "newline") {
@@ -7646,7 +7646,7 @@ var require_resolve_flow_collection = __commonJS({
             else
               onError(valueProps.start, "MISSING_CHAR", `Missing , or : between ${fcName} items`);
           }
-          const valueNode = value2 ? composeNode(ctx, value2, valueProps, onError) : valueProps.found ? composeEmptyNode(ctx, valueProps.end, sep5, null, valueProps, onError) : null;
+          const valueNode = value2 ? composeNode(ctx, value2, valueProps, onError) : valueProps.found ? composeEmptyNode(ctx, valueProps.end, sep6, null, valueProps, onError) : null;
           if (valueNode) {
             if (isBlock(value2))
               onError(valueNode.range, "BLOCK_IN_FLOW", blockMsg);
@@ -7826,7 +7826,7 @@ var require_resolve_block_scalar = __commonJS({
           chompStart = i + 1;
       }
       let value2 = "";
-      let sep5 = "";
+      let sep6 = "";
       let prevMoreIndented = false;
       for (let i = 0; i < contentStart; ++i)
         value2 += lines[i][0].slice(trimIndent) + "\n";
@@ -7843,24 +7843,24 @@ var require_resolve_block_scalar = __commonJS({
           indent = "";
         }
         if (type === Scalar.Scalar.BLOCK_LITERAL) {
-          value2 += sep5 + indent.slice(trimIndent) + content;
-          sep5 = "\n";
+          value2 += sep6 + indent.slice(trimIndent) + content;
+          sep6 = "\n";
         } else if (indent.length > trimIndent || content[0] === "	") {
-          if (sep5 === " ")
-            sep5 = "\n";
-          else if (!prevMoreIndented && sep5 === "\n")
-            sep5 = "\n\n";
-          value2 += sep5 + indent.slice(trimIndent) + content;
-          sep5 = "\n";
+          if (sep6 === " ")
+            sep6 = "\n";
+          else if (!prevMoreIndented && sep6 === "\n")
+            sep6 = "\n\n";
+          value2 += sep6 + indent.slice(trimIndent) + content;
+          sep6 = "\n";
           prevMoreIndented = true;
         } else if (content === "") {
-          if (sep5 === "\n")
+          if (sep6 === "\n")
             value2 += "\n";
           else
-            sep5 = "\n";
+            sep6 = "\n";
         } else {
-          value2 += sep5 + content;
-          sep5 = " ";
+          value2 += sep6 + content;
+          sep6 = " ";
           prevMoreIndented = false;
         }
       }
@@ -8043,25 +8043,25 @@ var require_resolve_flow_scalar = __commonJS({
         trimBoth = /^[ \t]+|[ \t]+$/g;
       }
       let res = match[1].replace(trimEnd, "");
-      let sep5 = " ";
+      let sep6 = " ";
       let pos = line2.lastIndex;
       while (match = line2.exec(source)) {
         const lm = match[1].replace(trimBoth, "");
         if (lm === "") {
-          if (sep5 === "\n")
-            res += sep5;
+          if (sep6 === "\n")
+            res += sep6;
           else
-            sep5 = "\n";
+            sep6 = "\n";
         } else {
-          res += sep5 + lm;
-          sep5 = " ";
+          res += sep6 + lm;
+          sep6 = " ";
         }
         pos = line2.lastIndex;
       }
       const last = /[ \t]*(.*)/sy;
       last.lastIndex = pos;
       match = last.exec(source);
-      return res + sep5 + (match?.[1] ?? "");
+      return res + sep6 + (match?.[1] ?? "");
     }
     function doubleQuotedValue(source, onError) {
       let res = "";
@@ -8871,14 +8871,14 @@ var require_cst_stringify = __commonJS({
         }
       }
     }
-    function stringifyItem({ start, key, sep: sep5, value: value2 }) {
+    function stringifyItem({ start, key, sep: sep6, value: value2 }) {
       let res = "";
       for (const st of start)
         res += st.source;
       if (key)
         res += stringifyToken(key);
-      if (sep5)
-        for (const st of sep5)
+      if (sep6)
+        for (const st of sep6)
           res += st.source;
       if (value2)
         res += stringifyToken(value2);
@@ -10045,18 +10045,18 @@ var require_parser = __commonJS({
         if (this.type === "map-value-ind") {
           const prev = getPrevProps(this.peek(2));
           const start = getFirstKeyStartProps(prev);
-          let sep5;
+          let sep6;
           if (scalar2.end) {
-            sep5 = scalar2.end;
-            sep5.push(this.sourceToken);
+            sep6 = scalar2.end;
+            sep6.push(this.sourceToken);
             delete scalar2.end;
           } else
-            sep5 = [this.sourceToken];
+            sep6 = [this.sourceToken];
           const map = {
             type: "block-map",
             offset: scalar2.offset,
             indent: scalar2.indent,
-            items: [{ start, key: scalar2, sep: sep5 }]
+            items: [{ start, key: scalar2, sep: sep6 }]
           };
           this.onKeyLine = true;
           this.stack[this.stack.length - 1] = map;
@@ -10209,15 +10209,15 @@ var require_parser = __commonJS({
                 } else if (isFlowToken(it.key) && !includesToken(it.sep, "newline")) {
                   const start2 = getFirstKeyStartProps(it.start);
                   const key = it.key;
-                  const sep5 = it.sep;
-                  sep5.push(this.sourceToken);
+                  const sep6 = it.sep;
+                  sep6.push(this.sourceToken);
                   delete it.key;
                   delete it.sep;
                   this.stack.push({
                     type: "block-map",
                     offset: this.offset,
                     indent: this.indent,
-                    items: [{ start: start2, key, sep: sep5 }]
+                    items: [{ start: start2, key, sep: sep6 }]
                   });
                 } else if (start.length > 0) {
                   it.sep = it.sep.concat(start, this.sourceToken);
@@ -10411,13 +10411,13 @@ var require_parser = __commonJS({
             const prev = getPrevProps(parent);
             const start = getFirstKeyStartProps(prev);
             fixFlowSeqItems(fc);
-            const sep5 = fc.end.splice(1, fc.end.length);
-            sep5.push(this.sourceToken);
+            const sep6 = fc.end.splice(1, fc.end.length);
+            sep6.push(this.sourceToken);
             const map = {
               type: "block-map",
               offset: fc.offset,
               indent: fc.indent,
-              items: [{ start, key: fc, sep: sep5 }]
+              items: [{ start, key: fc, sep: sep6 }]
             };
             this.onKeyLine = true;
             this.stack[this.stack.length - 1] = map;
@@ -10779,6 +10779,13 @@ function register3(program2) {
 function register4(program2) {
   program2.command("repair").description("Repair derived values only").action(async () => {
     await program2.execute("repair");
+  });
+}
+
+// scripts/commands/status.ts
+function register5(program2) {
+  program2.command("status").description("Show roadmap progress and the next ready leaf").argument("[file]").action(async (file) => {
+    await program2.execute("status", file === void 0 ? {} : { file });
   });
 }
 
@@ -11183,8 +11190,8 @@ var unrouted = { cls: "ungoverned" };
 var osFiles = /* @__PURE__ */ new Set([".ds_store", "thumbs.db", "desktop.ini"]);
 var normalize = (path) => path.replaceAll("\\", "/").replace(/^(\.\/)+/, "").replace(/^\/+/, "");
 var isUnroutedResult = (result) => result.cls === "ungoverned" && !result.excluded;
-function classify(relative5, config, ignores = compileIgnores(config.ignore)) {
-  const path = normalize(relative5);
+function classify(relative6, config, ignores = compileIgnores(config.ignore)) {
+  const path = normalize(relative6);
   const segments = path.split("/");
   const [directory = "", ...rest] = segments;
   if (osFiles.has((segments.at(-1) ?? "").toLowerCase())) return excluded;
@@ -11209,10 +11216,10 @@ function classify(relative5, config, ignores = compileIgnores(config.ignore)) {
 }
 function createClassifier(config) {
   const ignores = compileIgnores(config.ignore);
-  const classifyPath = (relative5) => classify(relative5, config, ignores);
+  const classifyPath = (relative6) => classify(relative6, config, ignores);
   return {
     classify: classifyPath,
-    isUnrouted: (relative5) => isUnroutedResult(classifyPath(relative5))
+    isUnrouted: (relative6) => isUnroutedResult(classifyPath(relative6))
   };
 }
 
@@ -11982,6 +11989,7 @@ function rollupOf(allChildren) {
   return "in-progress";
 }
 var isLeaf = (node) => !node.fileLevel && !node.breakout && !(node.children ?? []).length;
+var isSatisfied = (status) => status === "done" || status === "cut";
 
 // scripts/roadmap/node-checks.ts
 function validateBodyNode(document, node) {
@@ -12708,13 +12716,184 @@ function run4(options) {
   return { findings: [] };
 }
 
+// scripts/render/progress.ts
+var marks = { todo: " ", "in-progress": ">", blocked: "!", done: "x", cut: "-" };
+function formatProgress(scope, next) {
+  const out = [`${scope.root.id} [${scope.root.status ?? "?"}]`];
+  const walk = (nodes, depth) => {
+    for (const node of nodes) {
+      const deps = node.deps.length ? `  (needs ${node.deps.join(", ")})` : "";
+      out.push(`${"  ".repeat(depth)}[${marks[node.status ?? ""] ?? "?"}] ${node.id}${deps}`);
+      walk(node.children, depth + 1);
+    }
+  };
+  walk(scope.root.children, 1);
+  return [...out, "", formatNext(next)].join("\n");
+}
+function formatNext(next) {
+  switch (next.kind) {
+    case "ready":
+      return `next: ${next.node.id}`;
+    case "finished":
+      return "next: nothing - every node is done or cut";
+    case "gated":
+      return `next: nothing ready - every todo leaf is gated on ${next.blockers.join(", ")}`;
+    case "open":
+      return "next: nothing ready - no todo leaves, but work remains open";
+    case "cyclic":
+      return `next: cyclic - ${next.cycles.map((cycle) => cycle.join(" -> ")).join("; ")}`;
+  }
+}
+
+// scripts/roadmap/next-ready.ts
+function nextReady(scope, index) {
+  const cycles = findCycles(index).filter((cycle) => cycle.some((address) => address.startsWith(`${scope.roadmap}:`)));
+  if (cycles.length) return { kind: "cyclic", cycles };
+  const blockers = /* @__PURE__ */ new Set();
+  let finished = true;
+  let hasTodo = false;
+  const unmet = (deps) => deps.filter((dep) => !isSatisfied(resolveDep(index, scope.roadmap, dep)?.status));
+  const walk = (node2, inherited2) => {
+    if (!isSatisfied(node2.status)) finished = false;
+    const gates = [...inherited2, ...unmet(node2.deps)];
+    if (node2.leaf && node2.status === "todo") {
+      hasTodo = true;
+      if (!gates.length) return node2;
+      for (const gate of gates) blockers.add(gate);
+    }
+    for (const child of node2.children) {
+      const ready = walk(child, gates);
+      if (ready) return ready;
+    }
+    return void 0;
+  };
+  const inherited = scope.ancestors.flatMap((node2) => unmet(node2.deps));
+  const node = walk(scope.root, inherited);
+  if (node) return { kind: "ready", node };
+  if (finished) return { kind: "finished" };
+  return hasTodo ? { kind: "gated", blockers: [...blockers] } : { kind: "open" };
+}
+
+// scripts/roadmap/progress.ts
+function createProgressView(roadmap, model) {
+  const root = model.root;
+  const id2 = root && fileId(root);
+  if (!root || !id2) throw new Error(`Roadmap ${roadmap} has no modeled root`);
+  const childrenOf = (file, ancestors) => {
+    if (ancestors.has(file.rel)) throw new Error(`Cyclic breakout at ${file.rel}`);
+    const visited = /* @__PURE__ */ new Set([...ancestors, file.rel]);
+    return file.nodes.map((node) => nodeView(file, node, visited));
+  };
+  const nodeView = (file, node, ancestors) => {
+    const target = model.resolveBreakout(file.rel, node);
+    if (node.breakout && !target) throw new Error(`Unresolved breakout at ${file.rel}:${node.line}`);
+    return {
+      id: node.id,
+      file: file.rel,
+      line: node.line,
+      deps: node.deps,
+      status: target ? model.effectiveStatus(fileId(target)) : node.status,
+      leaf: !node.breakout,
+      children: target ? childrenOf(target, ancestors) : [],
+      ...target ? { breakout: target.rel } : {}
+    };
+  };
+  return { roadmap, root: {
+    id: id2,
+    file: root.rel,
+    line: root.locations.id?.line ?? 1,
+    deps: [],
+    status: model.effectiveStatus(id2),
+    leaf: false,
+    children: childrenOf(root, /* @__PURE__ */ new Set())
+  } };
+}
+var createProgressViews = (models) => [...models].map(([name, model]) => createProgressView(name, model));
+
+// scripts/roadmap/progress-scope.ts
+function scopeProgress(view, file = view.root.file) {
+  if (file === view.root.file) return { ...view, ancestors: [] };
+  const find = (node, ancestors) => {
+    if (node.breakout === file) return { roadmap: view.roadmap, root: node, ancestors };
+    for (const child of node.children) {
+      const found = find(child, [...ancestors, node]);
+      if (found) return found;
+    }
+    return void 0;
+  };
+  return find(view.root, []);
+}
+
+// scripts/commands/status-path.ts
+import { lstatSync as lstatSync7 } from "node:fs";
+import { isAbsolute as isAbsolute4, relative as relative5, resolve as resolve10, sep as sep5 } from "node:path";
+function statusPath(root, file) {
+  const directory = resolve10(root, "docs", "roadmaps");
+  const absolute = resolve10(root, file.replaceAll("\\", "/"));
+  const path = relative5(directory, absolute);
+  if (!path || isAbsolute4(path) || path === ".." || path.startsWith(`..${sep5}`)) {
+    throw new Error("status file must be inside docs/roadmaps/");
+  }
+  let ancestor = resolve10(root);
+  for (const part of relative5(ancestor, absolute).split(sep5)) {
+    ancestor = resolve10(ancestor, part);
+    try {
+      if (lstatSync7(ancestor).isSymbolicLink()) throw new Error("status file must not follow symbolic links");
+    } catch (error) {
+      if (error instanceof Error && "code" in error && error.code === "ENOENT") break;
+      throw error;
+    }
+  }
+  return `roadmaps/${path.split(sep5).join("/")}`;
+}
+
+// scripts/commands/handlers/status.ts
+var failure2 = (file, message) => ({
+  file,
+  line: 1,
+  rule: "roadmap-status",
+  severity: "error",
+  message
+});
+var cannotModel = (findings) => ({ findings: sortFindings(findings.map((finding) => ({ ...finding, message: `${finding.message}; run docs-lint audit` }))) });
+function run5(options) {
+  const file = options.file === void 0 ? void 0 : statusPath(options.root, options.file);
+  const { config, findings } = loadConfig(options.root);
+  if (!config) return { findings };
+  const tree = loadTree(options.root, config);
+  const context = { ...createRoadmapContext(config, tree.documents), files: new Set(tree.files) };
+  const actualFile = context.roadmapDocuments.find((document) => file !== void 0 && /\.md$/i.test(file) && /\.md$/i.test(document.path) && roadmapPathKey(document.path) === roadmapPathKey(file))?.path ?? file;
+  const paths = new Set(context.roadmapDocuments.map((document) => document.path));
+  const invalid = [
+    ...tree.findings.filter((finding) => paths.has(finding.file)),
+    ...context.roadmapDocuments.flatMap((document) => roadmapFileRule(document)),
+    ...roadmapTreeFindings(context),
+    ...unresolvedDeps(context.roadmaps, context.depIndex)
+  ];
+  if (invalid.length) return cannotModel(invalid);
+  try {
+    const views = createProgressViews(new Map([...context.models].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)));
+    const scopes = views.flatMap((view) => {
+      const scope = scopeProgress(view, actualFile);
+      return scope ? [scope] : [];
+    });
+    if (file && !scopes.length) return cannotModel([failure2(file, "file is not a modeled roadmap root or breakout")]);
+    const reports = scopes.map((scope) => formatProgress(scope, nextReady(scope, context.depIndex)));
+    return { findings: [], stdout: reports.length ? `${reports.join("\n\n")}
+` : "No roadmaps found.\n" };
+  } catch (error) {
+    return cannotModel([failure2(file ?? "roadmaps", error instanceof Error ? error.message : String(error))]);
+  }
+}
+
 // scripts/commands/program.ts
 function createProgram(options = {}) {
-  const shell = createCommandShell({ ...options, handlers: { init: run, audit: run2, check: run3, repair: run4, ...options.handlers } });
+  const shell = createCommandShell({ ...options, handlers: { init: run, audit: run2, check: run3, repair: run4, status: run5, ...options.handlers } });
   register(shell.program);
   register2(shell.program);
   register3(shell.program);
   register4(shell.program);
+  register5(shell.program);
   return shell;
 }
 

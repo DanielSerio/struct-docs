@@ -16,7 +16,7 @@ Breakout: ./configurable-schema.md
 Deps: configurable-schema
 Breakout: ./structural-cli.md
 
-### roadmap-status <!-- status: in-progress -->
+### roadmap-status <!-- status: done -->
 Deps: structural-cli
 Breakout: ./roadmap-status.md
 

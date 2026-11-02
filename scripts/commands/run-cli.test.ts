@@ -9,6 +9,7 @@ import { run as runInit } from './handlers/init.js';
 import { run as runAudit } from './handlers/audit.js';
 import { run as runCheck } from './handlers/check.js';
 import { run as runRepair } from './handlers/repair.js';
+import { run as runStatus } from './handlers/status.js';
 
 function capture() {
   let stdout = '';
@@ -23,6 +24,8 @@ test('all registration modules adapt flags and file arguments into testable hand
     ['audit', ['--fix', '--verbose'], { fix: true, verbose: true }],
     ['check', ['docs/specs/a.md'], { file: 'docs/specs/a.md' }],
     ['repair', [], {}],
+    ['status', [], {}],
+    ['status', ['docs/roadmaps/v1/index.md'], { file: 'docs/roadmaps/v1/index.md' }],
   ] as const) {
     const calls: CommandOptions[] = [];
     const io = capture();
@@ -39,8 +42,8 @@ test('every real handler exposes config findings without spawning a process', ()
   const root = mkdtempSync(join(tmpdir(), 'struct-docs-command-'));
   try {
     writeFileSync(join(root, '.struct-docs.yml'), '# config\nunknown: true');
-    for (const run of [runInit, runAudit, runCheck, runRepair]) {
-      const result = run({ root, file: 'docs/specs/a.md' });
+    for (const run of [runInit, runAudit, runCheck, runRepair, runStatus]) {
+      const result = run({ root, file: 'docs/roadmaps/v1/index.md' });
       assert.equal(result.findings[0]?.file, '.struct-docs.yml');
       assert.equal(result.findings[0]?.line, 2);
       assert.equal(result.findings[0]?.severity, 'error');

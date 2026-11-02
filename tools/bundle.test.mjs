@@ -68,6 +68,9 @@ test('bundle alone supports custom YAML schema, repair, check and silent idempot
     const project = join(root, 'project');
     write(project, '.struct-docs.yml', 'doctypes:\n  guides:\n    type: guide\n    owns: false\n    fields:\n      audience: { kind: string, required: true }\n');
     write(project, 'docs/guides/start.md', '---\ntitle: Start\ntype: guide\npurpose: Help developers.\naudience: "Developers: all"\n---\n');
+    write(project, 'docs/roadmaps/v1/index.md', '---\nid: v1\ntitle: Version one\ntype: roadmap\nstatus: todo\nintent: Ship\nspecs: [guides/start]\n---\n\n### first <!-- status: todo -->\nIntent: Deliver\nAcceptance:\n- [ ] Observable result\n');
+    assert.match(invoke(entry, project, 'status'), /next: first\n$/);
+    assert.match(invoke(entry, project, 'status', 'docs/roadmaps/v1/index.md'), /^v1 \[todo\]/);
     assert.equal(invoke(entry, project, 'check', 'docs/guides/start.md'), '');
     invoke(entry, project, 'repair');
     assert.equal(invoke(entry, project, 'audit'), '');

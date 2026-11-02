@@ -28,7 +28,7 @@ test('real malformed config passes through the shared reporter for every command
   const root = mkdtempSync(join(tmpdir(), 'struct-docs-process-'));
   try {
     writeFileSync(join(root, '.struct-docs.yml'), '# config\nunknown: true');
-    for (const args of [['audit'], ['init'], ['check', 'docs/specs/a.md'], ['repair']]) {
+    for (const args of [['audit'], ['init'], ['check', 'docs/specs/a.md'], ['repair'], ['status']]) {
       const result = spawnSync(process.execPath, [entry, ...args], { cwd: root, encoding: 'utf8' });
       assert.equal(result.status, 1, result.stderr);
       assert.equal(result.stderr, '');
