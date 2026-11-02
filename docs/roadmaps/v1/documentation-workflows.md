@@ -30,12 +30,15 @@ Deps: post-write-hook
 Notes:
 - 2026-11-02 npm run check passed all 242 tests; quiet-turn read probes, derived-only repairs, shared sentinel handoff and failure/timeout retries are verified.
 
-### audit-roadmap-skills <!-- status: todo -->
+### audit-roadmap-skills <!-- status: done -->
 Intent: Audit and roadmap skills drive the bundled CLI rather than reasoning about compliance themselves.
 Acceptance:
-- [ ] The audit skill passes `--fix` and `--verbose` only when asked, and answers progress or next-work questions by relaying `docs-lint status`.
-- [ ] The roadmap skill's `new` and `breakout` follow `specs/skills`, and a breakout that already exists is reported rather than regenerated.
-- [ ] Both skills call `bin/docs-lint.mjs` through `CLAUDE_PLUGIN_ROOT`, with no manage-docs path and no status algorithm of their own.
+- [x] The audit skill passes `--fix` and `--verbose` only when asked, and answers progress or next-work questions by relaying `docs-lint status`.
+- [x] The roadmap skill's `new` and `breakout` follow `specs/skills`, and a breakout that already exists is reported rather than regenerated.
+- [x] Both skills call `bin/docs-lint.mjs` through `CLAUDE_PLUGIN_ROOT`, with no manage-docs path and no status algorithm of their own.
+
+Notes:
+- 2026-11-02 npm run check passed all 242 tests; both skills were reviewed against their owner spec, and temporary new/breakout examples pass audit with nested next-ready output and an idempotent repair.
 
 ### review-skill <!-- status: todo -->
 Intent: Reviews follow the project template and a repeat review of one subject replaces the last.
