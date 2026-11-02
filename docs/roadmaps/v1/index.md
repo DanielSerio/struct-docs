@@ -20,7 +20,7 @@ Breakout: ./structural-cli.md
 Deps: structural-cli
 Breakout: ./roadmap-status.md
 
-### documentation-workflows <!-- status: in-progress -->
+### documentation-workflows <!-- status: done -->
 Deps: roadmap-status
 Breakout: ./documentation-workflows.md
 

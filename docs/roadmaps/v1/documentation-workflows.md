@@ -2,7 +2,7 @@
 id: documentation-workflows
 title: Documentation workflows
 type: roadmap-node
-status: in-progress
+status: done
 intent: The five familiar skills and two hooks work under Struct Docs policy.
 ---
 
@@ -70,10 +70,13 @@ Acceptance:
 Notes:
 - 2026-11-02 npm run check passed all 243 tests; the committed legacy-copy fixture and approved test plan verify preapproval no-write refusal, retained types/reasons/owns, preserved progress, exact template seeding and no-op repeat application without placeholders.
 
-### plugin-manifest <!-- status: todo -->
+### plugin-manifest <!-- status: done -->
 Intent: A git install loads five skills and two hooks with no npm install or global settings edits.
 Acceptance:
-- [ ] Manifest tests fail on a missing referenced file, a skill directory not matching its name, or a missing hook, and pass on this repo.
-- [ ] Every command path named in a skill exists in the bundled CLI, and both hooks run from a copy with no `node_modules`.
-- [ ] Local Claude plugin validation passes, and a root README documents git installation and optional junction setup.
+- [x] Manifest tests fail on a missing referenced file, a skill directory not matching its name, or a missing hook, and pass on this repo.
+- [x] Every command path named in a skill exists in the bundled CLI, and both hooks run from a copy with no `node_modules`.
+- [x] Local Claude plugin validation passes, and a root README documents git installation and optional junction setup.
 Deps: stop-hook, audit-roadmap-skills, review-skill, fold-skill, init-skill
+
+Notes:
+- 2026-11-02 npm run check passed all 249 tests; manifest mutations, five skill command paths and a copied real-hook handoff without node_modules pass. Strict local Claude plugin validation exits 0 with no manifest errors or warnings; root README documents git installation and optional junction use.
