@@ -50,12 +50,15 @@ Acceptance:
 Notes:
 - 2026-11-02 npm run check passed all 242 tests; template-first and rating policy were reviewed, and temporary reviews validate stable overwrite, required metadata and preservation of project template changes.
 
-### fold-skill <!-- status: todo -->
+### fold-skill <!-- status: done -->
 Intent: Fold merges only the sources a person names, and deletes them only once their content is accounted for.
 Acceptance:
-- [ ] With no named source, the skill asks for one; there is no default source, marker or flag.
-- [ ] It shows a source-to-destination plan, including new purposes or topics and discarded material with reasons, before changing any file.
-- [ ] After approval, references are rewritten throughout the repo, legacy `decisions` fields are removed, sources are deleted, and `docs-lint audit --fix` runs.
+- [x] With no named source, the skill asks for one; there is no default source, marker or flag.
+- [x] It shows a source-to-destination plan, including new purposes or topics and discarded material with reasons, before changing any file.
+- [x] After approval, references are rewritten throughout the repo, legacy `decisions` fields are removed, sources are deleted, and `docs-lint audit --fix` runs.
+
+Notes:
+- 2026-11-02 npm run check passed all 242 tests; a temporary named-source rehearsal preserved preapproval bytes/mtimes, applied its accounted plan, rewrote repo-wide references and audited clean with an idempotent repair.
 
 ### init-skill <!-- status: todo -->
 Intent: Init seeds docs from what a project already has and changes an existing setup only with approval.
