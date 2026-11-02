@@ -16,12 +16,9 @@ Breakout: ./configurable-schema.md
 Deps: configurable-schema
 Breakout: ./structural-cli.md
 
-### roadmap-status <!-- status: todo -->
-Intent: A person or skill can ask where a roadmap stands and what is next.
-Acceptance:
-- [ ] `docs-lint status` prints the progress tree and next ready node, and names finished, gated and cyclic trees.
-- [ ] `docs-lint status <file>` limits the report to that file's descendants and writes nothing.
+### roadmap-status <!-- status: in-progress -->
 Deps: structural-cli
+Breakout: ./roadmap-status.md
 
 ### documentation-workflows <!-- status: todo -->
 Intent: The five familiar skills and two hooks work under Struct Docs policy.

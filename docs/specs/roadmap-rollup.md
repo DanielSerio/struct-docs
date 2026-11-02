@@ -57,9 +57,15 @@ rollup makes, so a dep and a rollup can never disagree about the node they share
 
 ## Document order
 
-`docs-lint status` reports the next ready node as *the first `todo` node in document order whose every
-dep is satisfied*. **Document order is the order the tree is read:** depth-first, a node
-before its children, breakout tasks where their milestone sits.
+`docs-lint status` reports the next ready node as *the first `todo` leaf in document order
+whose every dep, and every dep of each of its ancestors, is satisfied*. **Document order is
+the order the tree is read:** depth-first, a node before its children, breakout tasks where
+their milestone sits.
+
+A derived node is never offered. Its status only summarizes its leaves, so offering it names
+work nobody can start directly: a broken-out milestone would come ahead of its own first
+task. A parent's deps still gate its descendants, because a milestone that cannot start
+cannot have a task that can.
 
 It is the same walk the progress tree is printed in, so the printed order and the offered
 work cannot disagree. Ordering by file instead puts every breakout task after every
