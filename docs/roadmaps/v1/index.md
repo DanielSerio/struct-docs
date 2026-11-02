@@ -20,14 +20,9 @@ Breakout: ./structural-cli.md
 Deps: structural-cli
 Breakout: ./roadmap-status.md
 
-### documentation-workflows <!-- status: todo -->
-Intent: The five familiar skills and two hooks work under Struct Docs policy.
-Acceptance:
-- [ ] Init, audit, roadmap, review and fold skills invoke existing bundled paths and pass manifest checks.
-- [ ] Init proposes migration and asks approval for owns values.
-- [ ] Fold requires named sources, and repeat reviews use stable filenames.
-- [ ] Hook fixtures prove marker gating, single-file-only reporting, config-triggered sentinel and silent safe repair.
+### documentation-workflows <!-- status: in-progress -->
 Deps: roadmap-status
+Breakout: ./documentation-workflows.md
 
 ### whole-roadmap-execution <!-- status: todo -->
 Intent: Execute a roadmap on a branch with verified task commits and predictable blocking.
