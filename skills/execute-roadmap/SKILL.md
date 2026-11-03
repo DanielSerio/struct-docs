@@ -77,8 +77,10 @@ breakout only when that milestone begins, following the roadmap skill's grammar.
 For that one leaf, read its owning documents, acceptance and project instructions/checks.
 Mark its authored status in-progress if necessary. Use the host's real subagent mechanism
 once, passing the task id, owners, acceptance, allowed paths, known changes to preserve
-and required checks. Do not spawn later tasks speculatively or replace delegation with
-inline work. If delegation is unavailable, stop and report that limitation. Keep branch,
+and required checks. Tell the agent to return its first failed verification check, failed
+acceptance or user-only decision immediately, without retries that hide the failure,
+bypassing a gate or choosing a default. Do not spawn later tasks speculatively or replace
+delegation with inline work. If delegation is unavailable, stop and report that limitation. Keep branch,
 roadmap status, verification and commits with the coordinator.
 
 Wait for that agent, then inspect its exact diff. Run applicable checks and verify every
@@ -111,8 +113,22 @@ blocker occurs. Never push or merge; neither is part of a verified task commit.
 
 ## Stop and report
 
-After work starts, a failed check, failed acceptance or user-only decision stops the run:
-record the active leaf blocked with a dated factual note, repair derived values when safe,
-and leave incomplete work uncommitted. Start no later task and never choose the user's
-answer. Report the branch, verified task commits, blocked task/evidence, remaining work
-and decision needed. Do not restart automatically after asking for a decision.
+After a task starts, stop at the first failed verification check, failed acceptance,
+unsatisfied external gate or decision only the user can make. Retain the command, exit
+code and relevant output, or the precise unanswered question. Do not retry until green,
+weaken a check, fix a deliberately failing rehearsal gate, or choose a plausible default.
+No later task or agent starts; stop any still-running work on the active leaf.
+
+Mark that authored leaf blocked and append a dated factual Notes entry identifying the
+failure and evidence. Keep earlier verified task commits and completed evidence intact.
+When safe, run only derived repair, inspect its diff, and leave the blocked task's code,
+docs and new files uncommitted for inspection. Do not discard, stash or publish incomplete
+work, and do not make a blocked task look verified by committing its status or note.
+Preflight rejection remains read-only; it does not author this blocked record.
+
+End the run with the branch, verified task commit SHAs, blocked task, command/output or
+unanswered decision, remaining in-scope work and input needed to continue. State when no
+product decision is needed and a failing check instead needs resolution. A user-only
+question is not an entry in open-questions unless the user says they cannot answer it.
+Never choose the answer, push, merge or restart automatically after requesting a decision.
+Resume only on subsequent user direction, preserving the verified checkpoints.

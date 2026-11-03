@@ -40,13 +40,16 @@ Deps: execution-preflight
 Notes:
 - 2026-11-03 npm run check passed all 257 tests. Three real subagents resumed and completed the fixture leaves in CLI order with one verified commit each; independent state/hash checks confirm clean audits, no-op repairs, preserved staged work and unchanged main/remote refs. Evidence records a stopped formatting probe and the fixture Git-attribute fix.
 
-### blocking <!-- status: todo -->
+### blocking <!-- status: done -->
 Intent: The first failed check or user-only decision stops execution with a factual record and nothing published.
 Acceptance:
-- [ ] On each fixture variant, the run stops at the first blocked task, starts no later task, and marks that leaf blocked with a dated note.
-- [ ] Incomplete work stays uncommitted for inspection, while earlier verified task commits remain.
-- [ ] The bare remote and `main` are unchanged, and the report names the task, evidence, remaining work and decision needed.
+- [x] On each fixture variant, the run stops at the first blocked task, starts no later task, and marks that leaf blocked with a dated note.
+- [x] Incomplete work stays uncommitted for inspection, while earlier verified task commits remain.
+- [x] The bare remote and `main` are unchanged, and the report names the task, evidence, remaining work and decision needed.
 Deps: task-loop
+
+Notes:
+- 2026-11-03 npm run check passed all 257 tests. Real failed-check and user-decision runs each stop at their first blocker, preserve one earlier verified commit and leave incomplete work uncommitted. Independent state/hash checks confirm no later work or main/remote changes; both final reports are recorded in blocking evidence.
 
 ### entry-points <!-- status: todo -->
 Intent: A roadmap index and a broken-out milestone are both valid entry points, and neither leaks outside its scope.

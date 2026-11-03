@@ -50,12 +50,21 @@ selecting another leaf. A finished scoped report never authorizes work elsewhere
 
 ## Stop behavior
 
-After an authorized task starts, at the first failed check, failed acceptance, unsatisfied
-external dependency or decision requiring the user, stop. Record the leaf as blocked with
-a dated factual Notes entry and repair derived statuses when safe. Preserve incomplete
-work for inspection; do not commit
-it as a verified task. Report the task, evidence, remaining work and decision needed.
-Never choose an unresolved product decision to keep the loop moving.
+After an authorized task starts, stop at the first failed verification check, failed
+acceptance, unsatisfied external dependency or user-only decision. Tell each subagent to
+surface that first blocker immediately, without hiding it through retries, bypassing a
+gate or choosing a default. Start no later task and stop any active work on that leaf.
+
+Record the authored leaf blocked with a dated factual Notes entry: the command, exit
+code and relevant output, or the precise unanswered decision. Repair derived statuses
+when safe and inspect the diff. Preserve incomplete code, docs and new files uncommitted
+for inspection; keep earlier verified task commits intact. Do not commit a blocked status
+or note as though the task were verified, and do not discard or stash incomplete work.
+
+Report the branch, verified commit SHAs, blocked task, evidence, remaining in-scope work
+and needed input. Say when no product decision is needed and a failed check instead needs
+resolution. Never select the user's answer or restart automatically after requesting one;
+resume only on subsequent user direction. Preflight rejection remains read-only.
 
 Why: later tasks may build on the blocked one, so continuing risks stacking work on a bad base
 and leaves a branch that is harder to review. Per-task commits give a rollback point at each
