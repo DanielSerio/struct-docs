@@ -32,13 +32,9 @@ Breakout: ./whole-roadmap-execution.md
 Deps: whole-roadmap-execution
 Breakout: ./multi-host.md
 
-### independent-project-gate <!-- status: todo -->
-Intent: A project can run structural checks and its own copied rules from one Commander CLI.
-Acceptance:
-- [ ] Generated CLI uses the copied setup, reader and reporter, and resolves every plugin discovery source in order.
-- [ ] Selected line-length, heading-gap, stale-pointer and file-size templates run after the plugin is unavailable.
-- [ ] Hook or existing-check integration preserves prior behavior; missing plugin warns while local rule errors fail.
+### independent-project-gate <!-- status: in-progress -->
 Deps: structural-cli, documentation-workflows, multi-host
+Breakout: ./independent-project-gate.md
 
 ### migrated-repository <!-- status: todo -->
 Intent: A copy of SDLC-docs demonstrates a safe, repeatable replacement of manage-docs.
