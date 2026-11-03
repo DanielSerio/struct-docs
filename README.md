@@ -1,7 +1,7 @@
 # Struct Docs
 
 A Claude Code plugin for configurable documentation structure and roadmap progress.
-It ships five skills: `init`, `audit`, `roadmap`, `review` and `fold`.
+It ships six skills: `init`, `audit`, `roadmap`, `review`, `fold` and `execute-roadmap`.
 Node 22+ and Claude Code are required. The committed CLI includes Commander and YAML;
 plugin users do not run `npm install`.
 
@@ -18,7 +18,9 @@ claude --plugin-dir /path/to/struct-docs
 Use `/struct-docs:init` to survey existing content and propose a concrete adoption plan.
 Existing structures, inferred ownership topics and migration moves require approval.
 The other skills are `/struct-docs:audit`, `/struct-docs:roadmap`,
-`/struct-docs:review` and `/struct-docs:fold`.
+`/struct-docs:review`, `/struct-docs:fold` and `/struct-docs:execute-roadmap <file>`.
+Execution validates the entire dependency graph before changing files or branches, then
+works only within the named index or milestone. It never pushes or merges.
 The plugin adds no global `CLAUDE.md` or `settings.json` entries.
 
 For local Windows development, an optional junction can give the checkout a stable path.

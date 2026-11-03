@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { parse } from 'yaml';
 import { pluginFile } from './plugin-files.mjs';
 
-const required = ['audit', 'fold', 'init', 'review', 'roadmap'];
+const required = ['audit', 'execute-roadmap', 'fold', 'init', 'review', 'roadmap'];
 
 /** Check the actual auto-discovered skill names and every literal bundled command. */
 export function skillFiles(root, commands, errors) {

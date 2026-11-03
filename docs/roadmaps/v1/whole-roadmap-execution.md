@@ -18,13 +18,16 @@ Acceptance:
 Notes:
 - 2026-11-03 npm run check passed all 252 tests; every variant audits clean and the one-command creator makes fresh external Git and bare-remote baselines without changing the source fixture.
 
-### execution-preflight <!-- status: todo -->
+### execution-preflight <!-- status: done -->
 Intent: `execute-roadmap <file>` refuses unsafe starts before it changes anything.
 Acceptance:
-- [ ] A malformed or cyclic roadmap, and an unsatisfied dependency outside the named file's scope, each stop the run before any file or branch changes.
-- [ ] The run creates or reuses a dedicated work branch, and unrelated uncommitted changes are left intact or the run stops and says why.
-- [ ] The skill ships as `skills/execute-roadmap/SKILL.md`, and manifest tests pass with six skills whose command paths exist in the bundled CLI.
+- [x] A malformed or cyclic roadmap, and an unsatisfied dependency outside the named file's scope, each stop the run before any file or branch changes.
+- [x] The run creates or reuses a dedicated work branch, and unrelated uncommitted changes are left intact or the run stops and says why.
+- [x] The skill ships as `skills/execute-roadmap/SKILL.md`, and manifest tests pass with six skills whose command paths exist in the bundled CLI.
 Deps: rehearsal-fixture
+
+Notes:
+- 2026-11-03 npm run check passed all 256 tests and strict local plugin validation passed. Retained preflight evidence proves read-only malformed/cyclic/external-gate/overlap rejection and preservation of staged unrelated work across branch creation/reuse.
 
 ### task-loop <!-- status: todo -->
 Intent: Tasks run one at a time in the order `docs-lint status` gives, each verified and committed before the next starts.

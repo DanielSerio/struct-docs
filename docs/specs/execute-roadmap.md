@@ -13,6 +13,11 @@ just the next task. Parse the full roadmap model to validate dependencies, but r
 to descendants of the named file. An unsatisfied dependency outside that scope blocks work;
 do not silently expand the requested scope. Reject malformed or cyclic roadmaps first.
 
+Preflight is read-only: run audit without `--fix` and full/scoped status before file or
+branch changes. Check every scoped node's external dependencies and inherited ancestor
+gates, including later tasks. Preflight rejection reports the evidence without changing
+leaf status or Notes. Stale derived values alone are not authored errors.
+
 Create or use a dedicated work branch; never push or merge. Inspect existing changes first
 and preserve unrelated work. A task commit includes only its verified implementation and
 associated documentation. If existing changes prevent safe isolation, stop and report why.
@@ -38,8 +43,9 @@ updates. Continue until every in-scope task is done or cut, or a blocker occurs.
 
 ## Stop behavior
 
-At the first failed check, failed acceptance, unsatisfied external dependency or decision
-requiring the user, stop. Record the leaf as blocked with a dated factual Notes entry and
+After an authorized task starts, at the first failed check, failed acceptance, unsatisfied
+external dependency or decision requiring the user, stop. Record the leaf as blocked with
+a dated factual Notes entry and
 repair derived statuses when safe. Preserve incomplete work for inspection; do not commit
 it as a verified task. Report the task, evidence, remaining work and decision needed.
 Never choose an unresolved product decision to keep the loop moving.

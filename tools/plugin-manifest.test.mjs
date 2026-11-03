@@ -34,7 +34,7 @@ function changeManifest(root, mutate) {
   writeFileSync(path, JSON.stringify(manifest));
 }
 
-test('the real plugin and its five auto-discovered skills reference existing bundled commands and assets', () => {
+test('the real plugin and its six auto-discovered skills reference existing bundled commands and assets', () => {
   assert.deepEqual(validatePlugin(repository), []);
 });
 
@@ -58,6 +58,10 @@ test('a missing skill file or a name that differs from its directory fails valid
     assert.ok(validatePlugin(root).some((message) => message.includes('skill directory/name mismatch')));
     rmSync(path);
     assert.ok(validatePlugin(root).some((message) => message.includes('skills/review/SKILL.md')));
+  });
+  copiedPlugin((root) => {
+    rmSync(join(root, 'skills/execute-roadmap/SKILL.md'));
+    assert.ok(validatePlugin(root).some((message) => message.includes('skills/execute-roadmap/SKILL.md')));
   });
 });
 
