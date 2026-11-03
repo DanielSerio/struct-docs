@@ -68,10 +68,11 @@ requesting approval. Do not alter unrelated content or global settings.
 
 ## Verify and report
 
-Run the bundled structural checks from the project root:
+Run the bundled structural checks (`../../bin/docs-lint.mjs` relative to this `SKILL.md`)
+from the project root:
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" audit --fix
+node "../../bin/docs-lint.mjs" audit --fix
 ```
 
 Relay remaining findings without inventing content to quiet them. Report what moved and

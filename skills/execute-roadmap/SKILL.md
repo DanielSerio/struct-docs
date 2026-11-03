@@ -16,12 +16,13 @@ and stop before a global repair would change unrelated roadmaps outside that bou
 
 ## Read-only preflight
 
-From the project root, use the bundled CLI to load the complete graph and scoped report:
+From the project root, use the bundled CLI (`../../bin/docs-lint.mjs` relative to this
+`SKILL.md`) to load the complete graph and scoped report:
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" audit
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" status
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" status "<file>"
+node "../../bin/docs-lint.mjs" audit
+node "../../bin/docs-lint.mjs" status
+node "../../bin/docs-lint.mjs" status "<file>"
 ```
 
 Replace `<file>` with the actual project-relative roadmap file. No `--fix`, `repair`,
@@ -87,7 +88,7 @@ Keep the original entry file fixed for the whole run. Before selecting each task
 its scoped report with the same command used in preflight:
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" status "<file>"
+node "../../bin/docs-lint.mjs" status "<file>"
 ```
 
 Skip done and cut work. Resume the first authored in-progress leaf shown in that tree,
@@ -103,7 +104,7 @@ Mark its authored status in-progress if necessary. Use the host's real subagent 
 once, passing the task id, owners, acceptance, allowed paths, known changes to preserve
 and required checks. Tell the agent to return its first failed verification check, failed
 acceptance or user-only decision immediately, without retries that hide the failure,
-bypassing a gate or choosing a default. Do not spawn later tasks speculatively or replace
+bypasses of a gate or choosing a default. Do not spawn later tasks speculatively or replace
 delegation with inline work. If delegation is unavailable, stop and report that limitation. Keep branch,
 roadmap status, verification and commits with the coordinator.
 
@@ -113,8 +114,8 @@ Tick only criteria whose evidence holds; add a dated factual Notes entry and set
 done only after all criteria and checks pass. Never hand-author aggregate statuses.
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" repair
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" audit
+node "../../bin/docs-lint.mjs" repair
+node "../../bin/docs-lint.mjs" audit
 ```
 
 Inspect every repair and the complete proposed task diff. Commit exactly that task's
@@ -127,8 +128,8 @@ After the commit, inspect its paths and verify unrelated contents/staging stayed
 Run audit again and confirm a second repair changes no bytes or modification times:
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" audit
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" repair
+node "../../bin/docs-lint.mjs" audit
+node "../../bin/docs-lint.mjs" repair
 ```
 
 Do not select or start another leaf until that commit and its checks are verified. Repeat

@@ -11,10 +11,11 @@ Create a directory only when its first real file is ready.
 ## Survey without writing
 
 Read existing docs, root config, legacy config, index markers, gitignore, local CLI and
-inbound references. Run the read-only survey from the project root:
+inbound references. Run the read-only survey (`../../bin/docs-lint.mjs` relative to this
+`SKILL.md`) from the project root:
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" init
+node "../../bin/docs-lint.mjs" init
 ```
 
 Legacy migration refusals are a request for the skill's plan, not permission to bypass it.
@@ -62,7 +63,7 @@ decisions source. Preserve unrelated wrapper commands and package-manager conven
 The skill performs semantic migration; the CLI applies only its safe derived setup:
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" init --apply
+node "../../bin/docs-lint.mjs" init --apply
 ```
 
 This seeds `assets/code-review-v1.md` verbatim into `docs/templates/code-review-v1.md`
@@ -72,10 +73,10 @@ and generates the index. Do not author a replacement template or create empty di
 ## Verify and offer integration
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" audit
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" repair
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" audit
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" init --apply
+node "../../bin/docs-lint.mjs" audit
+node "../../bin/docs-lint.mjs" repair
+node "../../bin/docs-lint.mjs" audit
+node "../../bin/docs-lint.mjs" init --apply
 ```
 
 Resolve findings within the approved scope and verify the repeated apply changes nothing.

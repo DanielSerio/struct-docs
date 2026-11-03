@@ -5,7 +5,8 @@ user-invocable: true
 ---
 
 These are skill operations, not additional CLI commands. Run CLI commands from the
-project root using the bundled path below; the CLI owns grammar and derived values.
+project root using the bundled path below (`../../bin/docs-lint.mjs` relative to this
+`SKILL.md`); the CLI owns grammar and derived values.
 
 ## new <name>
 
@@ -111,8 +112,8 @@ Depth comes from breakout files, not nested heading levels.
 ## Verify and report
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" audit --fix
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" status
+node "../../bin/docs-lint.mjs" audit --fix
+node "../../bin/docs-lint.mjs" status
 ```
 
 Relay findings and the progress report without a status or next-work algorithm of your

@@ -1,9 +1,10 @@
 import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { parse } from 'yaml';
 import { pluginFile } from './plugin-files.mjs';
 
 const required = ['audit', 'execute-roadmap', 'fold', 'init', 'review', 'roadmap'];
+const hostVariablePattern = /\$\{?[A-Z0-9_]+\}?|\b(?:CLAUDE|CODEX|ANTIGRAVITY|GEMINI)_PLUGIN_[A-Z0-9_]*\b|\bPLUGIN_(?:ROOT|DATA)\b/;
 
 /** Check the actual auto-discovered skill names and every literal bundled command. */
 export function skillFiles(root, commands, errors) {
@@ -29,12 +30,14 @@ export function skillFiles(root, commands, errors) {
     } catch {
       errors.push(`invalid skill frontmatter: ${path}`);
     }
-    for (const match of source.matchAll(/^[ \t]*node[ \t]+(?:"([^"]+)"|(\S+))[ \t]+([^\s`]+)/gm)) {
+    if (hostVariablePattern.test(source)) errors.push(`skill references host variable: ${path}`);
+    const matches = [...source.matchAll(/^[ \t]*node[ \t]+(?:"([^"]+)"|(\S+))[ \t]+([^\s`]+)/gm)];
+    if (!matches.length) errors.push(`missing bundled command in ${path}`);
+    for (const match of matches) {
       const entry = match[1] ?? match[2];
-      const prefix = '${CLAUDE_PLUGIN_ROOT}/';
-      const local = entry.startsWith(prefix) ? entry.slice(prefix.length) : undefined;
-      if (local !== undefined) pluginFile(root, local, errors);
-      if (local !== 'bin/docs-lint.mjs' || !commands.has(match[3])) {
+      const target = isAbsolute(entry) ? entry : relative(root, resolve(dirname(file), entry)).split(sep).join('/');
+      pluginFile(root, target, errors);
+      if (target !== 'bin/docs-lint.mjs' || !commands.has(match[3])) {
         errors.push(`unknown bundled command in ${path}: ${entry} ${match[3]}`);
       }
     }

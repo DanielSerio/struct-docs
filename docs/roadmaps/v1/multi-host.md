@@ -17,12 +17,14 @@ Acceptance:
 Notes:
 - 2026-11-03 Captured live `PostToolUse` and `Stop` payloads from Claude Code (`6f67a583-d462-43e0-bb98-3815774f05fa`), Codex (`01a1a1d5-3e13-7323-8df0-45e67d7995cf`) and Antigravity (`c6f043a4-7870-4023-970c-0b6c11cb96cc`, `5616c166-0dac-4fff-8c4c-6e8fbdd2fc5e`), committed sanitized fixtures under `tests/fixtures/hooks/`, and documented each host's contracts and observed behavior in `docs/specs/packaging.md`.
 
-### skill-paths <!-- status: todo -->
+### skill-paths <!-- status: done -->
 Intent: Skills reach the bundled CLI the same way in every host.
 Acceptance:
-- [ ] No skill references `CLAUDE_PLUGIN_ROOT` or another host variable, and each names the bundle by a path relative to its own `SKILL.md`.
-- [ ] Manifest tests resolve every skill's CLI path from a copied plugin with no host variables set, and fail when one points outside the plugin.
+- [x] No skill references `CLAUDE_PLUGIN_ROOT` or another host variable, and each names the bundle by a path relative to its own `SKILL.md`.
+- [x] Manifest tests resolve every skill's CLI path from a copied plugin with no host variables set, and fail when one points outside the plugin.
 Deps: host-research
+Notes:
+- 2026-11-03 Replaced `${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs` in all six `SKILL.md` files with `../../bin/docs-lint.mjs` relative to each `SKILL.md` and updated `tools/plugin-skills.mjs` and `tools/plugin-manifest.test.mjs` to forbid host variables and resolve relative skill CLI paths inside the plugin.
 
 ### hook-adapters <!-- status: todo -->
 Intent: Each host's hook payload becomes one shape before the shared hook logic runs.

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import { clearPending, isPending } from '../hooks/pending.mjs';
@@ -83,16 +83,51 @@ test('both hook events and the Write|Edit matcher are required', () => {
   });
 });
 
-test('skill invocations of commands absent from the shipped bundle fail validation', () => {
+test('skills resolve the CLI relative to SKILL.md without host variables and reject outside or host-variable paths', () => {
+  copiedPlugin((root) => {
+    const previous = {
+      CLAUDE_PLUGIN_ROOT: process.env.CLAUDE_PLUGIN_ROOT,
+      CODEX_PLUGIN_ROOT: process.env.CODEX_PLUGIN_ROOT,
+      PLUGIN_ROOT: process.env.PLUGIN_ROOT,
+    };
+    delete process.env.CLAUDE_PLUGIN_ROOT;
+    delete process.env.CODEX_PLUGIN_ROOT;
+    delete process.env.PLUGIN_ROOT;
+    try {
+      assert.deepEqual(validatePlugin(root), []);
+      const expected = resolve(root, 'bin/docs-lint.mjs');
+      for (const entry of readdirSync(join(root, 'skills'), { withFileTypes: true }).filter((item) => item.isDirectory())) {
+        const skillFile = join(root, 'skills', entry.name, 'SKILL.md');
+        const source = readFileSync(skillFile, 'utf8');
+        const matches = [...source.matchAll(/^[ \t]*node[ \t]+(?:"([^"]+)"|(\S+))[ \t]+([^\s`]+)/gm)];
+        assert.ok(matches.length > 0, `expected CLI invocation in ${skillFile}`);
+        for (const match of matches) {
+          assert.equal(resolve(dirname(skillFile), match[1] ?? match[2]), expected);
+        }
+      }
+    } finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
+  });
   for (const replacement of ['/bin/docs-lint.mjs" invented-command', '/scripts/commands/manage-docs.mjs" audit']) copiedPlugin((root) => {
     const path = join(root, 'skills/audit/SKILL.md');
     writeFileSync(path, readFileSync(path, 'utf8').replace('/bin/docs-lint.mjs" audit', replacement));
     assert.ok(validatePlugin(root).some((message) => message.includes('unknown bundled command')));
   });
-  copiedPlugin((root) => {
+  for (const outside of ['../../../outside/docs-lint.mjs', 'C:/old-plugin/docs-lint.mjs']) copiedPlugin((root) => {
     const path = join(root, 'skills/audit/SKILL.md');
-    writeFileSync(path, readFileSync(path, 'utf8').replace('${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs', 'C:/old-plugin/docs-lint.mjs'));
-    assert.ok(validatePlugin(root).some((message) => message.includes('unknown bundled command')));
+    writeFileSync(path, readFileSync(path, 'utf8').replaceAll('../../bin/docs-lint.mjs', outside));
+    const errors = validatePlugin(root);
+    assert.ok(errors.some((message) => message.includes('plugin reference must stay inside the install')));
+    assert.ok(errors.some((message) => message.includes('unknown bundled command')));
+  });
+  for (const variable of ['${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs', '$PLUGIN_ROOT/bin/docs-lint.mjs']) copiedPlugin((root) => {
+    const path = join(root, 'skills/audit/SKILL.md');
+    writeFileSync(path, readFileSync(path, 'utf8').replaceAll('../../bin/docs-lint.mjs', variable));
+    assert.ok(validatePlugin(root).some((message) => message.includes('skill references host variable')));
   });
 });
 

@@ -4,11 +4,12 @@ description: Check documentation structure, relay file:line findings, repair der
 user-invocable: true
 ---
 
-Run the bundled CLI from the project root. Do not load document prose to reason about
-mechanical compliance: the CLI owns those checks.
+Run the bundled CLI (`../../bin/docs-lint.mjs` relative to this `SKILL.md`) from the
+project root. Do not load document prose to reason about mechanical compliance: the CLI
+owns those checks.
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" audit
+node "../../bin/docs-lint.mjs" audit
 ```
 
 Add `--fix` only when the user asks for repairs. Add `--verbose` only when the user asks
@@ -20,7 +21,7 @@ counted unless `--verbose` was requested.
 For roadmap progress or next-work questions, run the separate read-only report:
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" status
+node "../../bin/docs-lint.mjs" status
 ```
 
 When the user names a roadmap file, pass its project-relative path after `status`.

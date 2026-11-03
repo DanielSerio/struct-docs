@@ -77,10 +77,11 @@ Notes for observations that do not assert a problem.
 
 ## Verify and report
 
-Run the bundled structural check from the project root and relay its findings:
+Run the bundled structural check (`../../bin/docs-lint.mjs` relative to this `SKILL.md`)
+from the project root and relay its findings:
 
 ```sh
-node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" audit
+node "../../bin/docs-lint.mjs" audit
 ```
 
 Do not invent content or repair unrelated docs to quiet the report. Report the review's
