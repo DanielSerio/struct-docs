@@ -32,7 +32,7 @@ Breakout: ./whole-roadmap-execution.md
 Deps: whole-roadmap-execution
 Breakout: ./multi-host.md
 
-### independent-project-gate <!-- status: in-progress -->
+### independent-project-gate <!-- status: done -->
 Deps: structural-cli, documentation-workflows, multi-host
 Breakout: ./independent-project-gate.md
 

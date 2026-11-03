@@ -2,7 +2,7 @@
 id: independent-project-gate
 title: Independent project gate
 type: roadmap-node
-status: in-progress
+status: done
 intent: A project can run structural checks and its own copied rules from one Commander CLI.
 ---
 
@@ -40,10 +40,10 @@ Acceptance:
 - [x] `skills/init/SKILL.md` offers the project CLI with selectable rules and applies only what the user approves.
 Deps: plugin-discovery
 
-### commit-gate <!-- status: todo -->
+### commit-gate <!-- status: done -->
 Intent: A project's commits run the generated CLI without losing the checks it already had.
 Acceptance:
-- [ ] On a fixture with an existing pre-commit hook and one with an existing check script, adding the gate keeps prior behavior, and the generated CLI runs once per commit.
-- [ ] In a fixture repository, a commit with a local rule error is blocked, while a commit with only a missing plugin or only warnings succeeds and prints the warning.
-- [ ] `skills/init/SKILL.md` offers the gate after the project CLI, uses the project's package manager, and respects a decline.
+- [x] On a fixture with an existing pre-commit hook and one with an existing check script, adding the gate keeps prior behavior, and the generated CLI runs once per commit.
+- [x] In a fixture repository, a commit with a local rule error is blocked, while a commit with only a missing plugin or only warnings succeeds and prints the warning.
+- [x] `skills/init/SKILL.md` offers the gate after the project CLI, uses the project's package manager, and respects a decline.
 Deps: generated-cli
