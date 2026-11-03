@@ -24,13 +24,9 @@ Breakout: ./roadmap-status.md
 Deps: roadmap-status
 Breakout: ./documentation-workflows.md
 
-### whole-roadmap-execution <!-- status: todo -->
-Intent: Execute a roadmap on a branch with verified task commits and predictable blocking.
-Acceptance:
-- [ ] A multi-task fixture executes in dependency order using one subagent per task and commits each verified task.
-- [ ] A failed check and a user-only decision each stop at the first blocked task without pushing or merging.
-- [ ] Index and milestone entry points preserve scope, acceptance evidence and CLI-derived statuses.
+### whole-roadmap-execution <!-- status: in-progress -->
 Deps: documentation-workflows
+Breakout: ./whole-roadmap-execution.md
 
 ### independent-project-gate <!-- status: todo -->
 Intent: A project can run structural checks and its own copied rules from one Commander CLI.

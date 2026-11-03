@@ -13,7 +13,8 @@
     "test": "npm run build:test && node tools/run-tests.mjs",
     "check": "npm run lint && npm run typecheck && npm test",
     "build": "node tools/build-bundle.mjs",
-    "docs-lint": "node bin/docs-lint.mjs"
+    "docs-lint": "node bin/docs-lint.mjs",
+    "rehearse:execution": "node tools/rehearsal/create.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

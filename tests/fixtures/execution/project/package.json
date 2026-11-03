@@ -1,0 +1,9 @@
+{
+  "name": "roadmap-execution-rehearsal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --test test/greeting.test.mjs",
+    "check:failure": "node tools/failing-check.mjs"
+  }
+}
