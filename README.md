@@ -69,13 +69,14 @@ the sentinel; use `audit --fix` for those changes.
 npm ci
 npm run build
 npm run check
-claude plugin validate . --strict
+node tools/plugin-files.mjs claude plugin validate --strict
+node tools/plugin-files.mjs agy plugin validate --strict
 ```
 
 `npm run check` runs lint, type checking, tests, manifest/path checks and bundle freshness.
 The freshness test rebuilds in a temporary directory and compares exact bytes with
-`bin/docs-lint.mjs`; regenerate with `npm run build` when stale. Claude plugin validation
-is an additional local check when Claude Code is installed. No CI or npm publication
+`bin/docs-lint.mjs`; regenerate with `npm run build` when stale. Host plugin validation
+runs against the copied shipped plugin when Claude Code or Antigravity is installed. No CI or npm publication
 setup is required.
 
 Start at [docs/README.md](docs/README.md) for the generated documentation index and specs.

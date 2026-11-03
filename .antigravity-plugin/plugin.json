@@ -1,0 +1,8 @@
+{
+  "name": "struct-docs",
+  "version": "0.1.0",
+  "author": {
+    "name": "Dan Serio"
+  },
+  "description": "Configurable documentation structure, roadmap progress, and plan-first documentation workflows."
+}

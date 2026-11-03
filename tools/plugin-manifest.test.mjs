@@ -1,57 +1,66 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { test } from 'node:test';
-import { clearPending, isPending } from '../hooks/pending.mjs';
+import { isPending } from '../hooks/pending.mjs';
+import { copiedPlugin, repository } from './plugin-files.mjs';
 import { validatePlugin } from './plugin-manifest.mjs';
 
-const repository = fileURLToPath(new URL('../', import.meta.url));
-
-function copiedPlugin(run) {
-  const root = mkdtempSync(join(tmpdir(), 'struct-docs-plugin-'));
-  const install = join(root, 'install');
-  mkdirSync(install);
-  for (const path of ['.claude-plugin', 'skills', 'hooks', 'README.md', 'bin/docs-lint.mjs', 'assets/code-review-v1.md']) {
-    mkdirSync(dirname(join(install, path)), { recursive: true });
-    cpSync(join(repository, path), join(install, path), { recursive: true });
-  }
-  try {
-    run(install, root);
-  } finally {
-    clearPending(join(root, 'project'));
-    assert.ok(relative(tmpdir(), root).startsWith('struct-docs-plugin-'));
-    rmSync(root, { recursive: true, force: true });
-  }
+function changeJson(root, relativePath, mutate) {
+  const path = join(root, relativePath);
+  const value = JSON.parse(readFileSync(path, 'utf8'));
+  mutate(value);
+  writeFileSync(path, JSON.stringify(value));
 }
 
 function changeManifest(root, mutate) {
-  const path = join(root, '.claude-plugin/plugin.json');
-  const manifest = JSON.parse(readFileSync(path, 'utf8'));
-  mutate(manifest);
-  writeFileSync(path, JSON.stringify(manifest));
+  changeJson(root, '.claude-plugin/plugin.json', mutate);
 }
 
 test('the real plugin and its six auto-discovered skills reference existing bundled commands and assets', () => {
   assert.deepEqual(validatePlugin(repository), []);
+  assert.equal(existsSync(join(repository, 'CLAUDE.md')), true);
+  assert.equal(existsSync(join(repository, 'AGENTS.md')), true);
+  copiedPlugin((install) => {
+    assert.deepEqual(validatePlugin(install), []);
+    assert.equal(existsSync(join(install, 'CLAUDE.md')), false);
+    assert.equal(existsSync(join(install, 'AGENTS.md')), false);
+  });
 });
 
-test('missing referenced bundle, asset and imported hook helper fail plugin validation', () => {
-  for (const path of ['bin/docs-lint.mjs', 'assets/code-review-v1.md', 'hooks/pending.mjs']) {
+test('missing referenced bundle, asset, manifest and hook target fail plugin validation across all hosts', () => {
+  for (const path of ['bin/docs-lint.mjs', 'assets/code-review-v1.md', 'hooks/pending.mjs', 'hooks.json']) {
     copiedPlugin((root) => {
       rmSync(join(root, path));
       assert.ok(validatePlugin(root).some((message) => message.includes(`missing referenced file: ${path}`)));
+    });
+  }
+  for (const manifestPath of ['.claude-plugin/plugin.json', '.codex-plugin/plugin.json', '.antigravity-plugin/plugin.json']) {
+    copiedPlugin((root) => {
+      rmSync(join(root, manifestPath));
+      assert.ok(validatePlugin(root).some((message) => message.includes(`missing or invalid ${manifestPath}`)));
     });
   }
   copiedPlugin((root) => {
     changeManifest(root, (manifest) => { manifest.hooks.Stop[0].hooks[0].command = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/missing.mjs"'; });
     assert.ok(validatePlugin(root).some((message) => message.includes('hooks/missing.mjs')));
   });
+  copiedPlugin((root) => {
+    changeJson(root, '.codex-plugin/plugin.json', (manifest) => {
+      manifest.hooks.Stop[0].hooks[0].command = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/missing-codex.mjs"';
+    });
+    assert.ok(validatePlugin(root).some((message) => message.includes('hooks/missing-codex.mjs')));
+  });
+  copiedPlugin((root) => {
+    changeJson(root, 'hooks.json', (hooks) => {
+      hooks['struct-docs'].Stop[0].command = 'node ./hooks/missing-antigravity.mjs';
+    });
+    assert.ok(validatePlugin(root).some((message) => message.includes('hooks/missing-antigravity.mjs')));
+  });
 });
 
-test('a missing skill file or a name that differs from its directory fails validation', () => {
+test('a missing skill file, mismatched skill name, or skill set that differs between hosts fails validation', () => {
   copiedPlugin((root) => {
     const path = join(root, 'skills/review/SKILL.md');
     writeFileSync(path, readFileSync(path, 'utf8').replace('name: review', 'name: another-review'));
@@ -63,13 +72,39 @@ test('a missing skill file or a name that differs from its directory fails valid
     rmSync(join(root, 'skills/execute-roadmap/SKILL.md'));
     assert.ok(validatePlugin(root).some((message) => message.includes('skills/execute-roadmap/SKILL.md')));
   });
+  for (const [host, manifestPath] of [
+    ['claude', '.claude-plugin/plugin.json'],
+    ['codex', '.codex-plugin/plugin.json'],
+    ['antigravity', '.antigravity-plugin/plugin.json'],
+  ]) {
+    copiedPlugin((root) => {
+      changeJson(root, manifestPath, (manifest) => { manifest.skills = ['./skills/audit', './skills/init']; });
+      assert.ok(validatePlugin(root).some((message) => message.includes(`skill set differs between hosts (${host})`)));
+    });
+    copiedPlugin((root) => {
+      mkdirSync(join(root, 'partial-skills/audit'), { recursive: true });
+      cpSync(join(root, 'skills/audit/SKILL.md'), join(root, 'partial-skills/audit/SKILL.md'));
+      changeJson(root, manifestPath, (manifest) => { manifest.skills = './partial-skills'; });
+      assert.ok(validatePlugin(root).some((message) => message.includes(`skill set differs between hosts (${host})`)));
+    });
+  }
 });
 
-test('both hook events and the Write|Edit matcher are required', () => {
-  for (const event of ['PostToolUse', 'Stop']) copiedPlugin((root) => {
-    changeManifest(root, (manifest) => { delete manifest.hooks[event]; });
-    assert.ok(validatePlugin(root).some((message) => message.includes(`missing or invalid ${event} hook`)));
-  });
+test('both hook events and host matchers are required in every host registration', () => {
+  for (const event of ['PostToolUse', 'Stop']) {
+    copiedPlugin((root) => {
+      changeManifest(root, (manifest) => { delete manifest.hooks[event]; });
+      assert.ok(validatePlugin(root).some((message) => message.includes(`missing or invalid ${event} hook (claude)`)));
+    });
+    copiedPlugin((root) => {
+      changeJson(root, '.codex-plugin/plugin.json', (manifest) => { delete manifest.hooks[event]; });
+      assert.ok(validatePlugin(root).some((message) => message.includes(`missing or invalid ${event} hook (codex)`)));
+    });
+    copiedPlugin((root) => {
+      changeJson(root, 'hooks.json', (hooks) => { delete hooks['struct-docs'][event]; });
+      assert.ok(validatePlugin(root).some((message) => message.includes(`missing or invalid ${event} hook (antigravity)`)));
+    });
+  }
   copiedPlugin((root) => {
     changeManifest(root, (manifest) => { manifest.hooks.PostToolUse[0].matcher = 'Read'; });
     assert.ok(validatePlugin(root).some((message) => message.includes('must match Write|Edit')));

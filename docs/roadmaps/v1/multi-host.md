@@ -37,13 +37,15 @@ Deps: host-research
 Notes:
 - 2026-11-03 Normalized Claude Code, Codex (`Write`/`Edit` and `apply_patch` headers) and Antigravity (`toolCall.args` and `workspacePaths`) payloads in `hooks/lib.mjs`, formatted host-required `PostToolUse` and `Stop` outputs in `hooks/post-write-check.mjs` and `hooks/stop-repair.mjs`, and added fixture replay, multi-file `apply_patch`, and unrecognized-payload tests in `tools/post-write-hook.test.mjs` and `tools/stop-hook.test.mjs`.
 
-### host-manifests <!-- status: todo -->
+### host-manifests <!-- status: done -->
 Intent: One checkout carries a manifest for every host, each registering the same skills and hooks.
 Acceptance:
-- [ ] `.codex-plugin/plugin.json` and `.antigravity-plugin/plugin.json` exist, and each host's hook config, wherever that host reads it, registers both hooks with commands that resolve inside the plugin. One hooks file may serve more than one host.
-- [ ] Manifest tests cover all three hosts and fail on a missing referenced file, a hook missing from any host's registration, or a skill set that differs between hosts.
-- [ ] `claude plugin validate . --strict`, `agy plugin validate --strict .`, and Codex's validator if it has one, all pass.
+- [x] `.codex-plugin/plugin.json` and `.antigravity-plugin/plugin.json` exist, and each host's hook config, wherever that host reads it, registers both hooks with commands that resolve inside the plugin. One hooks file may serve more than one host.
+- [x] Manifest tests cover all three hosts and fail on a missing referenced file, a hook missing from any host's registration, or a skill set that differs between hosts.
+- [x] `claude plugin validate --strict`, `agy plugin validate --strict`, and Codex's validator if it has one, all pass on the copied plugin the manifest tests use, which holds only shipped files; repository-only `CLAUDE.md` and `AGENTS.md` stay at the root and out of the copy.
 Deps: skill-paths, hook-adapters
+Notes:
+- 2026-11-03 Added `.codex-plugin/plugin.json`, `.antigravity-plugin/plugin.json`, and `hooks.json`; shared `copiedPlugin` in `tools/plugin-files.mjs` so manifest tests and strict host validators check the same shipped file set while keeping `CLAUDE.md` and `AGENTS.md` at the repository root; updated `tools/plugin-manifest.mjs`, `tools/plugin-skills.mjs`, `tools/plugin-manifest.test.mjs`, `AGENTS.md`, and `README.md`; verified `node tools/plugin-files.mjs claude plugin validate --strict` and `node tools/plugin-files.mjs agy plugin validate --strict` both pass.
 
 ### host-rehearsals <!-- status: todo -->
 Intent: Each host is shown working from a git install, and the README says how to install in each.

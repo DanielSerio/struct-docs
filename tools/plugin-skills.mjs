@@ -42,4 +42,39 @@ export function skillFiles(root, commands, errors) {
       }
     }
   }
+  return names;
+}
+
+/** Verify every host resolves the same skill set as auto-discovered skills/. */
+export function hostSkills(root, manifests, names, errors) {
+  const baseline = [...names].sort().join(',');
+  for (const [host, manifest] of Object.entries(manifests)) {
+    if (!manifest || manifest.skills === undefined) continue;
+    let entries = null;
+    if (Array.isArray(manifest.skills)) {
+      entries = manifest.skills.map((item) => String(item).replace(/\/SKILL\.md$/, ''));
+    } else if (typeof manifest.skills === 'string') {
+      const dir = resolve(root, manifest.skills);
+      const local = relative(resolve(root), dir);
+      if (!local || isAbsolute(local) || local === '..' || local.startsWith(`..${sep}`)) {
+        errors.push(`plugin reference must stay inside the install: ${manifest.skills}`);
+        entries = [];
+      } else {
+        try {
+          entries = readdirSync(dir, { withFileTypes: true }).filter((entry) => entry.isDirectory())
+            .map((entry) => `${manifest.skills.replace(/\/$/, '')}/${entry.name}`);
+        } catch {
+          errors.push(`missing referenced file: ${manifest.skills}`);
+          entries = [];
+        }
+      }
+    }
+    if (entries === null) {
+      errors.push(`skill set differs between hosts (${host})`);
+      continue;
+    }
+    const discovered = entries.filter((entry) => pluginFile(root, `${entry.replace(/^\.\//, '')}/SKILL.md`, errors))
+      .map((entry) => entry.replace(/^\.\//, '').split('/').pop());
+    if ([...discovered].sort().join(',') !== baseline) errors.push(`skill set differs between hosts (${host})`);
+  }
 }

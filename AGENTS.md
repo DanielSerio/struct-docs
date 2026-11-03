@@ -16,7 +16,7 @@ Use Node.js 22 or later.
 - `npm test`: clean and compile test output, then run Node's test runner.
 - `npm run docs-lint -- audit`: audit this repository; clean output is silent.
 - `npm run rehearse:execution -- success`: create an isolated Git rehearsal; variants include `failed-check` and `decision` (see `tests/fixtures/execution/README.md`).
-- `claude plugin validate . --strict`: validate plugin metadata when Claude Code is available.
+- `node tools/plugin-files.mjs claude plugin validate --strict` and `node tools/plugin-files.mjs agy plugin validate --strict`: validate the copied shipped plugin when Claude Code or Antigravity is available.
 
 ## Coding Style & Naming Conventions
 

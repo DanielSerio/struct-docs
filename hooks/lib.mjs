@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 export const cliPath = fileURLToPath(new URL('../bin/docs-lint.mjs', import.meta.url));
 const antigravityWriteTools = new Set([
-  'write_file', 'edit_file', 'Write', 'Edit', 'replace_file_content', 'multi_replace_file_content',
+  'write_file', 'edit_file', 'write_to_file', 'Write', 'Edit', 'replace_file_content', 'multi_replace_file_content',
 ]);
 
 /** Only an unambiguous ordered marker pair opts a project into either hook. */
