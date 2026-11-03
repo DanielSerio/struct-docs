@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 import { test } from 'node:test';
 import { createRehearsal } from './rehearsal/create.mjs';
@@ -39,6 +39,17 @@ test('the source fixture has a passing code check and clean audit without depend
   assert.equal(run(fixture, [cli, 'audit']), '');
   assert.equal(existsSync(join(fixture, 'node_modules')), false);
   assert.deepEqual(snapshot(fixture), before);
+});
+
+test('the fixture Git attributes accept a CRLF source edit without whitespace errors', () => {
+  rehearse('success', (result) => {
+    const path = join(result.project, 'src/greeting.mjs');
+    const source = readFileSync(path, 'utf8').replaceAll('\r\n', '\n');
+    writeFileSync(path, (source + '// A Windows editor may save CRLF.\n').replaceAll('\n', '\r\n'));
+    assert.equal(git(result.project, 'diff', '--check'), '');
+    assert.equal(git(result.project, 'rev-parse', 'main'), result.baseline);
+    assert.equal(git(result.root, '--git-dir', result.remote, 'rev-parse', 'main'), result.baseline);
+  });
 });
 
 test('each variant creates a fresh outside repository with matching main and bare-remote baselines', () => {

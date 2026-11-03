@@ -29,13 +29,16 @@ Deps: rehearsal-fixture
 Notes:
 - 2026-11-03 npm run check passed all 256 tests and strict local plugin validation passed. Retained preflight evidence proves read-only malformed/cyclic/external-gate/overlap rejection and preservation of staged unrelated work across branch creation/reuse.
 
-### task-loop <!-- status: todo -->
+### task-loop <!-- status: done -->
 Intent: Tasks run one at a time in the order `docs-lint status` gives, each verified and committed before the next starts.
 Acceptance:
-- [ ] On the fixture, every task runs in dependency order with one subagent per task, and an in-progress leaf is resumed before any other task starts.
-- [ ] Each task produces one commit holding only its implementation, docs, ticked acceptance, dated note and done status.
-- [ ] After every commit, `docs-lint audit` is clean and a repair changes nothing, and the skill's order matches `docs-lint status` with no algorithm of its own.
+- [x] On the fixture, every task runs in dependency order with one subagent per task, and an in-progress leaf is resumed before any other task starts.
+- [x] Each task produces one commit holding only its implementation, docs, ticked acceptance, dated note and done status.
+- [x] After every commit, `docs-lint audit` is clean and a repair changes nothing, and the skill's order matches `docs-lint status` with no algorithm of its own.
 Deps: execution-preflight
+
+Notes:
+- 2026-11-03 npm run check passed all 257 tests. Three real subagents resumed and completed the fixture leaves in CLI order with one verified commit each; independent state/hash checks confirm clean audits, no-op repairs, preserved staged work and unchanged main/remote refs. Evidence records a stopped formatting probe and the fixture Git-attribute fix.
 
 ### blocking <!-- status: todo -->
 Intent: The first failed check or user-only decision stops execution with a factual record and nothing published.

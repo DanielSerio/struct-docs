@@ -41,12 +41,19 @@ criterion holds. Set done only after all criteria and checks pass, then run the 
 repair and audit. Commit after each verified task, including its status and acceptance
 updates. Continue until every in-scope task is done or cut, or a blocker occurs.
 
+Keep the original entry file for every scoped status refresh. Delegation uses the host's
+real subagent mechanism; if unavailable, stop rather than claiming inline work was
+delegated. The coordinator inspects the implementation and verifies acceptance itself.
+Commit explicit task paths, preserving unrelated staging. After each commit, inspect its
+paths, run audit and confirm another repair changes no bytes or modification times before
+selecting another leaf. A finished scoped report never authorizes work elsewhere.
+
 ## Stop behavior
 
 After an authorized task starts, at the first failed check, failed acceptance, unsatisfied
 external dependency or decision requiring the user, stop. Record the leaf as blocked with
-a dated factual Notes entry and
-repair derived statuses when safe. Preserve incomplete work for inspection; do not commit
+a dated factual Notes entry and repair derived statuses when safe. Preserve incomplete
+work for inspection; do not commit
 it as a verified task. Report the task, evidence, remaining work and decision needed.
 Never choose an unresolved product decision to keep the loop moving.
 
