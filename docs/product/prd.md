@@ -15,7 +15,8 @@ people spend a model on.
 Developers working with coding agents need documentation whose location and authority stay
 clear. Deciding where content belongs is expensive; duplicated rules drift and agents read
 unnecessary files to find the current truth. Struct Docs replaces the manage-docs Claude
-Code plugin with configurable document schemas and deterministic structural checks.
+Code plugin with configurable document schemas and deterministic structural checks, and
+works in Claude Code, Codex and Antigravity.
 
 The original brief calls for customizable frontmatter, a single configuration file, the
 existing documentation workflows plus roadmap execution, an ignored living directory, and
@@ -33,6 +34,8 @@ the specifications linked from the documentation index.
   to optional project-owned rules, so they remain available without the plugin.
 - Six skills cover initialization, auditing, roadmap creation, review, folding named sources
   and execution of an entire roadmap. Two hooks keep derived values current.
+- One checkout installs as a plugin in Claude Code, Codex and Antigravity. Skills, hooks and
+  CLI behave the same in each; host differences stay in manifests and hook payload adapters.
 - Missing documents never create findings. What an author writes must be complete; the tool
   never demands more documents. Clean checks are silent.
 - Derived values have one writer, the CLI. Rule rationale stays beside the rule, and only
@@ -47,9 +50,11 @@ the specifications linked from the documentation index.
 
 Node 22+, TypeScript, Commander, a real YAML config parser and a committed single esbuild
 bundle are required. The gate is local. Directory creation is lazy, and absent documents,
-templates and roadmaps are valid states. No global settings or global CLAUDE.md are edited.
+templates and roadmaps are valid states. No global host settings or instruction files, such
+as `CLAUDE.md` or `AGENTS.md`, are edited.
 
-Deferred: CI and npm distribution, other coding agents, additional field kinds, a body-rule
+Deferred: CI and npm distribution, coding agents other than Claude Code, Codex and
+Antigravity, additional field kinds, a body-rule
 configuration language and cross-document staleness tracking. Subject scoring and trends
 remain excluded: model ratings are not comparable across sessions. Review finding ratings
 remain useful within a single review.

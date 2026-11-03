@@ -28,13 +28,22 @@ Breakout: ./documentation-workflows.md
 Deps: documentation-workflows
 Breakout: ./whole-roadmap-execution.md
 
+### multi-host <!-- status: todo -->
+Intent: One plugin checkout installs and behaves alike in Claude Code, Codex and Antigravity.
+Acceptance:
+- [ ] Each host loads the plugin from one git checkout through its own manifest, and manifest tests cover all three.
+- [ ] Hook fixtures replay each host's payloads, including a Codex `apply_patch` edit, and each yields the same single-file feedback and sentinel.
+- [ ] All six skills reach the bundled CLI with no host-specific variable, and each host's validator passes where one exists.
+- [ ] The execution rehearsal runs in each host with its own subagents, or stops before changing anything where a host has none.
+Deps: whole-roadmap-execution
+
 ### independent-project-gate <!-- status: todo -->
 Intent: A project can run structural checks and its own copied rules from one Commander CLI.
 Acceptance:
-- [ ] Generated CLI uses the copied setup, reader and reporter, and resolves all three plugin discovery sources in order.
+- [ ] Generated CLI uses the copied setup, reader and reporter, and resolves every plugin discovery source in order.
 - [ ] Selected line-length, heading-gap, stale-pointer and file-size templates run after the plugin is unavailable.
 - [ ] Hook or existing-check integration preserves prior behavior; missing plugin warns while local rule errors fail.
-Deps: structural-cli, documentation-workflows
+Deps: structural-cli, documentation-workflows, multi-host
 
 ### migrated-repository <!-- status: todo -->
 Intent: A copy of SDLC-docs demonstrates a safe, repeatable replacement of manage-docs.

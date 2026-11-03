@@ -36,13 +36,14 @@ catches them later.
 ## Discovery
 
 One isolated lookup function tries STRUCT_DOCS_ROOT, then installPath from
-~/.claude/plugins/installed_plugins.json for struct-docs, then ~/.claude/skills/struct-docs.
-Validate that a candidate contains bin/docs-lint.mjs; fall through when invalid. Handle a
+~/.claude/plugins/installed_plugins.json for struct-docs, then ~/.claude/skills/struct-docs,
+then the Codex and Antigravity plugin install locations, in that fixed order. Validate that
+a candidate contains bin/docs-lint.mjs; fall through when invalid. Handle a
 missing or malformed registry without crashing. Registry layout is an implementation detail
 isolated behind this function and fixture tests; never persist version-specific install paths.
 
-If none exists, warn that plugin checks were skipped and name installation via Claude Code's
-`/plugin install <Struct Docs repository URL>` or STRUCT_DOCS_ROOT. Local rules still run.
+If none exists, warn that plugin checks were skipped and name installation as a plugin in a
+supported host, or STRUCT_DOCS_ROOT. Local rules still run.
 A discovered but failing plugin is an actual failure, not a missing-plugin skip.
 
 ## Rule library

@@ -8,8 +8,9 @@ owns: [initialization-workflow, audit-workflow, roadmap-authoring, review-workfl
 
 ## Shared behavior
 
-Port the five manage-docs skills as separate, concise Claude Code skills. Invoke the bundled
-CLI through CLAUDE_PLUGIN_ROOT. Keep reasons beside rules, ask about undecided behavior and
+Port the five manage-docs skills as separate, concise skills in the SKILL.md format shared by
+Claude Code, Codex and Antigravity. Invoke the bundled CLI by a path relative to the skill,
+not a host variable (`specs/packaging`). Keep reasons beside rules, ask about undecided behavior and
 record only user-unanswerable questions in open-questions. No global settings edits.
 
 ## Init

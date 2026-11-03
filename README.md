@@ -1,8 +1,11 @@
 # Struct Docs
 
-A Claude Code plugin for configurable documentation structure and roadmap progress.
+A coding-agent plugin for configurable documentation structure and roadmap progress, built
+for Claude Code, Codex and Antigravity. Claude Code is the only supported host today; Codex
+and Antigravity support is planned in the `multi-host` milestone of
+[the v1 roadmap](docs/roadmaps/v1/index.md).
 It ships six skills: `init`, `audit`, `roadmap`, `review`, `fold` and `execute-roadmap`.
-Node 22+ and Claude Code are required. The committed CLI includes Commander and YAML;
+Node 22+ and Claude Code are required for now. The committed CLI includes Commander and YAML;
 plugin users do not run `npm install`.
 
 ## Install from git
