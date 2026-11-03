@@ -29,17 +29,43 @@ host settings or instruction files.
 ## Hosts
 
 Skills and hooks hold no host-specific logic beyond the manifests and one payload adapter per
-host. Skills reach the bundle by a path relative to their own `SKILL.md`, because Antigravity
-sets no plugin-root variable; `CLAUDE_PLUGIN_ROOT` is not required. Hook entry points normalize
-each payload to a project root and written paths before shared logic runs: Claude's
-`tool_input.file_path`, Codex's `Edit`/`Write` input and the file headers of an `apply_patch`
-in `tool_input.command`, and Antigravity's camelCase `toolCall.args` from its file-writing
-tools with `workspacePaths` as the root. An unrecognized payload is silent, like any other
-malformed one.
+host. Skills reach the bundle by a path relative to their own `SKILL.md`
+(`../../bin/docs-lint.mjs`, and `../../assets/code-review-v1.md` from `skills/review/SKILL.md`),
+because Antigravity sets no plugin-root variable; `CLAUDE_PLUGIN_ROOT` is not required. Hook entry
+points normalize each payload to a project root and written paths before shared logic runs:
+Claude's `tool_input.file_path`, Codex's `Edit`/`Write` input and the file headers of an
+`apply_patch` in `tool_input.command`, and Antigravity's camelCase `toolCall.args` from its
+file-writing tools with `workspacePaths` as the root. An unrecognized payload exits 0 with that
+host's empty output (`{}` for Antigravity-shaped payloads, or empty `stdout` otherwise). Sanitized
+`PostToolUse` and `Stop` payloads captured from real sessions of each host are committed under
+`tests/fixtures/hooks/`.
 
 Why: the hosts share the SKILL.md format and PostToolUse and Stop events, so one checkout can
 serve all three. Keeping differences at the edges means a host change touches one adapter,
 not the checks.
+
+### Host contracts
+
+- **Claude Code** ([plugins](https://code.claude.com/docs/en/plugins), [plugins reference](https://code.claude.com/docs/en/plugins-reference), [hooks](https://code.claude.com/docs/en/hooks), [skills](https://code.claude.com/docs/en/skills)):
+  - **Manifest path**: `.claude-plugin/plugin.json`.
+  - **Plugin hook config location**: Inline under `"hooks"` in `.claude-plugin/plugin.json` (or `hooks/hooks.json`).
+  - **Plugin install location**: `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/` (or loaded in place via `claude --plugin-dir <path>`).
+  - **Required `PostToolUse` and `Stop` output**: `PostToolUse` exits 0 with plain-text findings on `stdout` and empty `stdout` when clean; `Stop` exits 0 with empty `stdout`.
+  - **Finding files inside the plugin**: Claude sets `CLAUDE_PLUGIN_ROOT` in the hook process environment with `cwd` at the target project root (verified in session `6f67a583-d462-43e0-bb98-3815774f05fa`), so hook commands run `node "${CLAUDE_PLUGIN_ROOT}/hooks/<script>.mjs"`, and each hook resolves `../bin/docs-lint.mjs` via `import.meta.url`. Skills resolve `../../bin/docs-lint.mjs` relative to `skills/<name>/SKILL.md`.
+- **Codex** ([plugins](https://developers.openai.com/codex/plugins), [hooks](https://developers.openai.com/codex/hooks), [skills](https://developers.openai.com/codex/skills), [feature flags](https://developers.openai.com/codex/config-basic#feature-flags)):
+  - **Manifest path**: `.codex-plugin/plugin.json`.
+  - **Plugin hook config location**: `hooks/hooks.json` by default, or the `./`-prefixed path declared in `"hooks"` inside `.codex-plugin/plugin.json`.
+  - **Plugin install location**: `~/.codex/plugins/cache/<marketplace>/<plugin>/<version>/` (or `$CODEX_HOME/plugins/cache/<marketplace>/<plugin>/<version>/`), installed from a marketplace entry in `.agents/plugins/marketplace.json`.
+  - **Required `PostToolUse` and `Stop` output**: `PostToolUse` exits 0 with plain-text findings on `stdout` and empty `stdout` when clean; `Stop` exits 0 with empty `stdout`.
+  - **Finding files inside the plugin**: Hook commands run `node "${CLAUDE_PLUGIN_ROOT}/hooks/<script>.mjs"` and resolve `../bin/docs-lint.mjs` via `import.meta.url`; skills resolve `../../bin/docs-lint.mjs` relative to `skills/<name>/SKILL.md`.
+  - **Observed behavior (`codex-cli 0.165.0`, session `01a1a1d5-3e13-7323-8df0-45e67d7995cf`)**: Codex sets `CLAUDE_PLUGIN_ROOT`, `PLUGIN_ROOT`, `CLAUDE_PLUGIN_DATA`, and `PLUGIN_DATA` (and does not set `CODEX_PLUGIN_ROOT`) with `cwd` at the target project root; file edits invoked through `apply_patch` arrive as `PostToolUse` events with `tool_name: "Bash"` and `tool_input.command` containing the `*** Begin Patch` ... `*** End Patch` text with `*** Add File:`, `*** Update File:`, `*** Delete File:`, and `*** Move to:` headers; `PostToolUse` and `Stop` accept exit 0 with empty or plain-text `stdout`; and `codex plugin` provides `add`, `list`, `marketplace`, and `remove` with no `validate` subcommand.
+- **Antigravity** ([plugins](https://antigravity.google/docs/plugins), [hooks](https://antigravity.google/docs/hooks), [skills](https://antigravity.google/docs/skills)):
+  - **Manifest path**: `.antigravity-plugin/plugin.json`.
+  - **Plugin hook config location**: `hooks.json` at the plugin root, keyed by hook name (`"struct-docs"`).
+  - **Plugin install location**: `~/.gemini/config/plugins/<plugin>/` via `agy plugin install <path>`, or `<workspace>/.agents/plugins/<plugin>/`.
+  - **Required `PostToolUse` and `Stop` output**: Command hooks must print valid JSON on `stdout`. `PostToolUse` prints `{}` when clean, and otherwise prints `{"overwriteResult": "..."}` holding the original tool result (`payload.result`, when present) followed by the findings. `Stop` prints `{"decision": "stop"}` and never outputs `"continue"`.
+  - **Finding files inside the plugin**: Antigravity runs hook commands with `process.cwd()` set to the directory containing `hooks.json` (the plugin root), so `node ./hooks/<script>.mjs` resolves inside the plugin and `import.meta.url` resolves `../bin/docs-lint.mjs`. Skills resolve `../../bin/docs-lint.mjs` relative to `skills/<name>/SKILL.md`.
+  - **Observed behavior (`agy 1.4.12`, sessions `c6f043a4-7870-4023-970c-0b6c11cb96cc` and `5616c166-0dac-4fff-8c4c-6e8fbdd2fc5e`)**: Antigravity sets no `CLAUDE_PLUGIN_ROOT`, `CODEX_PLUGIN_ROOT`, or `PLUGIN_ROOT` environment variable in hook processes and spawns hook `command` strings directly without a shell (splitting on whitespace without stripping quotes, so hook arguments in `hooks.json` must remain unquoted relative paths); `exa.hooks_pb.PostToolHookArgs` defines `result` and `PostToolHookResult` defines `overwriteResult` (which `protojson` accepts on `PostToolUse` stdout even though `hooks.md` only documents `{}`, while `jsonhook` command hooks in `1.4.12` omit `result` on stdin); and `agy plugin validate --strict` requires a root `hooks.json` with a named top-level hook entry and a relative `"logo"` file path in `.antigravity-plugin/plugin.json`.
 
 The build also emits the shared Commander setup, reader, reporter and rule templates as plain
 `.mjs` under `assets/project-cli/`, from the same TypeScript sources the bundle uses. These are

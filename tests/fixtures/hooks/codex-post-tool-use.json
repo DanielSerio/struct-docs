@@ -1,0 +1,15 @@
+{
+  "session_id": "01a1a1d5-3e13-7323-8df0-45e67d7995cf",
+  "turn_id": "01a1a1d5-4ec8-71d3-b3d8-69df417a7b21",
+  "transcript_path": "/users/example/.codex/sessions/2026/11/03/rollout-2026-11-03T09-34-30-01a1a1d5-3e13-7323-8df0-45e67d7995cf.jsonl",
+  "cwd": "/workspace/project",
+  "hook_event_name": "PostToolUse",
+  "model": "gpt-6.1-sol",
+  "permission_mode": "bypassPermissions",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "apply_patch <<'PATCH'\n*** Begin Patch\n*** Add File: docs/example.md\n+# Example\n*** End Patch\nPATCH"
+  },
+  "tool_response": "Success. Updated the following files:\nA docs/example.md\n",
+  "tool_use_id": "exec-0b7b4ef3-b2ee-4035-a897-ba1b83eb697b"
+}

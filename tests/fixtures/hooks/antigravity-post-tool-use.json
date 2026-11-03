@@ -1,0 +1,21 @@
+{
+  "artifactDirectoryPath": "/users/example/.gemini/antigravity-cli/brain/5616c166-0dac-4fff-8c4c-6e8fbdd2fc5e",
+  "conversationId": "5616c166-0dac-4fff-8c4c-6e8fbdd2fc5e",
+  "error": "",
+  "lastUserInput": "Use the write_file tool to write '# Example' to docs/example.md and tell me the exact tool result.",
+  "modelName": "gemini-4-argon-medium",
+  "result": "Wrote 9 bytes to /workspace/project/docs/example.md",
+  "stepIdx": 2,
+  "toolCall": {
+    "args": {
+      "Content": "# Example",
+      "Overwrite": true,
+      "Path": "/workspace/project/docs/example.md"
+    },
+    "name": "write_file"
+  },
+  "transcriptPath": "/users/example/.gemini/antigravity-cli/brain/5616c166-0dac-4fff-8c4c-6e8fbdd2fc5e/.system_generated/logs/transcript_full.jsonl",
+  "workspacePaths": [
+    "/workspace/project"
+  ]
+}

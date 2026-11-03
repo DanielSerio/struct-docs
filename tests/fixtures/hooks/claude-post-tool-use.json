@@ -1,0 +1,26 @@
+{
+  "session_id": "6f67a583-d462-43e0-bb98-3815774f05fa",
+  "transcript_path": "/users/example/.claude/projects/workspace-project/6f67a583-d462-43e0-bb98-3815774f05fa.jsonl",
+  "cwd": "/workspace/project",
+  "prompt_id": "54bd21da-00cc-48b4-a4ce-af0b3bd34bcd",
+  "permission_mode": "bypassPermissions",
+  "effort": {
+    "level": "high"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/workspace/project/docs/example.md",
+    "content": "# Example"
+  },
+  "tool_response": {
+    "type": "create",
+    "filePath": "/workspace/project/docs/example.md",
+    "content": "# Example",
+    "structuredPatch": [],
+    "originalFile": null,
+    "userModified": false
+  },
+  "tool_use_id": "toolu_01P1oFDFmB8xXpoo1Mmee1Rx",
+  "duration_ms": 85
+}

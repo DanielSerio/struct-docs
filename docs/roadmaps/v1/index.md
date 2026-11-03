@@ -28,14 +28,9 @@ Breakout: ./documentation-workflows.md
 Deps: documentation-workflows
 Breakout: ./whole-roadmap-execution.md
 
-### multi-host <!-- status: todo -->
-Intent: One plugin checkout installs and behaves alike in Claude Code, Codex and Antigravity.
-Acceptance:
-- [ ] Each host loads the plugin from one git checkout through its own manifest, and manifest tests cover all three.
-- [ ] Hook fixtures replay each host's payloads, including a Codex `apply_patch` edit, and each yields the same single-file feedback and sentinel.
-- [ ] All six skills reach the bundled CLI with no host-specific variable, and each host's validator passes where one exists.
-- [ ] The execution rehearsal runs in each host with its own subagents, or stops before changing anything where a host has none.
+### multi-host <!-- status: in-progress -->
 Deps: whole-roadmap-execution
+Breakout: ./multi-host.md
 
 ### independent-project-gate <!-- status: todo -->
 Intent: A project can run structural checks and its own copied rules from one Commander CLI.

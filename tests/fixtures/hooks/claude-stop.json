@@ -1,0 +1,15 @@
+{
+  "session_id": "6f67a583-d462-43e0-bb98-3815774f05fa",
+  "transcript_path": "/users/example/.claude/projects/workspace-project/6f67a583-d462-43e0-bb98-3815774f05fa.jsonl",
+  "cwd": "/workspace/project",
+  "prompt_id": "54bd21da-00cc-48b4-a4ce-af0b3bd34bcd",
+  "permission_mode": "bypassPermissions",
+  "effort": {
+    "level": "high"
+  },
+  "hook_event_name": "Stop",
+  "stop_hook_active": false,
+  "last_assistant_message": "Created `docs/example.md` with the text `# Example`.",
+  "background_tasks": [],
+  "session_crons": []
+}
