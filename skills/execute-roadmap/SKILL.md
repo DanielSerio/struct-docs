@@ -9,6 +9,11 @@ descendants; a breakout scopes only that file's descendants. Read the named file
 parents and linked task files without rewriting existing progress. Clarify a missing or
 ambiguous entry point before changing anything.
 
+Implementation and authored leaf changes stay in that scope. Related derived ancestor
+statuses and the generated index may change through repair; that does not authorize
+other authored work. Account for the audit's prospective repair paths during preflight,
+and stop before a global repair would change unrelated roadmaps outside that boundary.
+
 ## Read-only preflight
 
 From the project root, use the bundled CLI to load the complete graph and scoped report:
@@ -56,6 +61,25 @@ execute on `main` or `master`, or silently repurpose an unrelated branch. If the
 branch already exists elsewhere, inspect it and preserve the current work before
 switching; stop if safe reuse is uncertain. An existing dedicated branch needs no new
 branch or confirmation. Never push or merge, including local remotes.
+
+## Enter an index or an existing milestone
+
+With a milestone file, follow only its descendants and retain the original file as the
+selection entry point. Do not continue with a sibling merely because full status lists it.
+With an index, follow its existing breakouts in the CLI's nested document order, keeping
+their checked acceptance, dated notes and active progress. Never regenerate those files.
+
+When the index's next eligible milestone has no breakout, create one only as its work
+begins, following the roadmap skill. Move title and intent to the task file's frontmatter
+and carry its agreed acceptance, evidence and notes into tasks or historical context.
+Keep only routing fields in the parent: its heading/status, deps and `Breakout` path.
+If a target file already exists, read and report it instead of replacing it; resolve any
+route mismatch before writing. Breakout is a skill operation, not a bundled CLI command.
+
+Seed the new file's required status, then let repair derive file and parent values.
+Refresh `status "<file>"` using the ORIGINAL index entry after the structural change;
+delegate the resulting authored leaf, not the milestone aggregate. Keep breakout creation
+with the first verified task's commit rather than making an unverified preparatory commit.
 
 ## Run one verified task at a time
 
@@ -110,6 +134,13 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs" repair
 Do not select or start another leaf until that commit and its checks are verified. Repeat
 from the original scoped status command until every in-scope task is done or cut, or a
 blocker occurs. Never push or merge; neither is part of a verified task commit.
+
+## Finish the requested scope
+
+When the original scoped report says every node is done or cut, report the branch and
+verified task commit SHAs, remaining in-scope work (explicitly none when finished), and
+any blocker or needed decision. Distinguish prior verified progress from commits made in
+this run. Mention untouched sibling work only as context; do not start it automatically.
 
 ## Stop and report
 

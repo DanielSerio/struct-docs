@@ -76,3 +76,9 @@ is an additional local check when Claude Code is installed. No CI or npm publica
 setup is required.
 
 Start at [docs/README.md](docs/README.md) for the generated documentation index and specs.
+
+For an execution rehearsal, run `npm run rehearse:execution -- success` and use the
+returned project with `/struct-docs:execute-roadmap docs/roadmaps/release/index.md`, or
+name `docs/roadmaps/release/greeting.md` to restrict work to that milestone. The
+[fixture guide](tests/fixtures/execution/README.md) documents blocking variants; retained
+[execution evidence](tests/fixtures/execution/evidence/task-loop.md) records real delegated runs.

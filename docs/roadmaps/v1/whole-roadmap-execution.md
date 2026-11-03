@@ -2,7 +2,7 @@
 id: whole-roadmap-execution
 title: Whole roadmap execution
 type: roadmap-node
-status: in-progress
+status: done
 intent: Execute a roadmap on a branch with verified task commits and predictable blocking.
 ---
 
@@ -51,10 +51,13 @@ Deps: task-loop
 Notes:
 - 2026-11-03 npm run check passed all 257 tests. Real failed-check and user-decision runs each stop at their first blocker, preserve one earlier verified commit and leave incomplete work uncommitted. Independent state/hash checks confirm no later work or main/remote changes; both final reports are recorded in blocking evidence.
 
-### entry-points <!-- status: todo -->
+### entry-points <!-- status: done -->
 Intent: A roadmap index and a broken-out milestone are both valid entry points, and neither leaks outside its scope.
 Acceptance:
-- [ ] From an index, a milestone with no breakout is broken out when its work begins, and an existing breakout is kept with its progress.
-- [ ] From a milestone file, only that file's descendants change, and the final report lists the branch, task commits and remaining work.
-- [ ] Statuses on parents and roots are derived by repair in both entry points, and only leaf statuses are authored.
+- [x] From an index, a milestone with no breakout is broken out when its work begins, and an existing breakout is kept with its progress.
+- [x] From a milestone file, only that file's descendants change, and the final report lists the branch, task commits and remaining work.
+- [x] Statuses on parents and roots are derived by repair in both entry points, and only leaf statuses are authored.
 Deps: task-loop
+
+Notes:
+- 2026-11-03 npm run check passed all 257 tests and strict local plugin validation passed. Real milestone and index runs preserve scope and existing progress; a just-in-time breakout produces one new verified task commit. Independent state/hash checks confirm derived-only ancestor/index updates, unchanged protected files/staging/refs and a finished index report.

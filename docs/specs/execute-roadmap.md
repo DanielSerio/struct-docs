@@ -18,11 +18,23 @@ branch changes. Check every scoped node's external dependencies and inherited an
 gates, including later tasks. Preflight rejection reports the evidence without changing
 leaf status or Notes. Stale derived values alone are not authored errors.
 
+Authored changes stay within the named descendants. Related derived ancestor statuses
+and the generated index may change through repair, without expanding implementation
+scope. Account for prospective repair paths during preflight; stop before global repair
+would change unrelated roadmaps outside that boundary.
+
 Create or use a dedicated work branch; never push or merge. Inspect existing changes first
 and preserve unrelated work. A task commit includes only its verified implementation and
 associated documentation. If existing changes prevent safe isolation, stop and report why.
 
 ## Task loop
+
+An index includes its existing breakout trees and inline milestones. Preserve every
+existing breakout's progress. When an eligible inline milestone begins, create its task
+file using the roadmap skill's grammar, move title/intent/detail out of the parent and
+retain only routing there. Do not create breakouts up front or overwrite an existing
+target. Refresh the original scoped status after this structural change and include the
+breakout in its first verified task commit. A milestone-file entry never selects siblings.
 
 Take order from `docs-lint status <file>` rather than a second algorithm in the skill. Walk in
 the inherited dependency and document order. Skip done and cut tasks. Resume an
@@ -72,3 +84,7 @@ step, and never pushing or merging keeps publishing the work in the user's hands
 
 Final reporting identifies the branch, verified task commits, remaining tasks and blocker,
 if any. No pushes, merges or automatic restart after a decision request.
+
+A finished report explicitly names no remaining in-scope work, blocker or needed decision.
+Distinguish commits made in this run from preserved earlier verified progress; untouched
+sibling work is context, not permission to continue outside the original entry point.
