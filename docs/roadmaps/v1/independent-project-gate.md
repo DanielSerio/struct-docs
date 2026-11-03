@@ -23,12 +23,12 @@ Acceptance:
 - [x] For the same fixture document, the emitted reader and reporter print the same `file:line - problem` lines and exit status as the bundle.
 Deps: house-style-rules
 
-### plugin-discovery <!-- status: todo -->
+### plugin-discovery <!-- status: done -->
 Intent: A copied CLI finds an installed plugin in any supported host without remembering where it was.
 Acceptance:
-- [ ] One lookup function, shipped in `assets/project-cli/`, tries `STRUCT_DOCS_ROOT`, the Claude `installPath` from `~/.claude/plugins/installed_plugins.json`, `~/.claude/skills/struct-docs`, the Codex plugin cache and the Antigravity plugin directory, in that order, and returns the first that contains `bin/docs-lint.mjs`.
-- [ ] Fixture tests with a temporary home cover each source winning, an invalid candidate falling through, and a missing or malformed registry returning no plugin without throwing.
-- [ ] Where the Codex cache holds several versions of struct-docs, the highest version wins, and no install path is written into the project.
+- [x] One lookup function, shipped in `assets/project-cli/`, tries `STRUCT_DOCS_ROOT`, the Claude `installPath` from `~/.claude/plugins/installed_plugins.json`, `~/.claude/skills/struct-docs`, the Codex plugin cache and the Antigravity plugin directory, in that order, and returns the first that contains `bin/docs-lint.mjs`.
+- [x] Fixture tests with a temporary home cover each source winning, an invalid candidate falling through, and a missing or malformed registry returning no plugin without throwing.
+- [x] Where the Codex cache holds several versions of struct-docs, the highest version wins, and no install path is written into the project.
 Deps: project-cli-assets
 
 ### generated-cli <!-- status: todo -->

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 export const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
 export const projectCliEntries = [
   ['command-shell.mjs', 'scripts/commands/command-shell.ts'],
+  ['discover-plugin.mjs', 'scripts/read/discover-plugin.ts'],
   ['read-document.mjs', 'scripts/read/project-document.ts'],
   ['report.mjs', 'scripts/render/report.ts'],
   ['line-length.mjs', 'scripts/check/line-length-rule.ts'],
