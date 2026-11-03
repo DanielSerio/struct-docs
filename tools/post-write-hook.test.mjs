@@ -4,6 +4,7 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { test } from 'node:test';
+import { pathToFileURL } from 'node:url';
 import { isPending, sentinelPath, clearPending } from '../hooks/pending.mjs';
 
 const hook = resolve('hooks/post-write-check.mjs');
@@ -31,14 +32,22 @@ function fixture(run, readme = markers) {
 
 function invoke(root, file, options = {}) {
   const payload = { cwd: root, tool_name: 'Write', tool_input: { file_path: file } };
-  const result = spawnSync(process.execPath, [options.entry ?? hook], {
+  const result = spawnSync(process.execPath, [...(options.flags ?? []), options.entry ?? hook], {
     input: options.raw ?? JSON.stringify(payload), encoding: 'utf8',
-    env: { ...process.env, NODE_PATH: '', CLAUDE_PLUGIN_ROOT: 'not-the-plugin' },
+    env: { ...process.env, NODE_PATH: '', CLAUDE_PLUGIN_ROOT: 'not-the-plugin', ...options.env },
   });
   assert.ifError(result.error);
   assert.equal(result.status, 0, result.stderr);
   assert.equal(result.stderr, '');
   return result.stdout;
+}
+
+function replayFixture(name, root, targetRelative = 'docs/example.md') {
+  const raw = readFileSync(resolve('tests/fixtures/hooks', name), 'utf8')
+    .replaceAll('/workspace/project/docs/example.md', join(root, targetRelative).replaceAll('\\', '/'))
+    .replaceAll('docs/example.md', targetRelative)
+    .replaceAll('/workspace/project', root.replaceAll('\\', '/'));
+  return { raw, payload: JSON.parse(raw) };
 }
 
 function snapshot(root) {
@@ -145,5 +154,116 @@ test('copied hooks bound findings and swallow missing CLI and execution failures
     }
     rmSync(join(root, 'plugin/bin/docs-lint.mjs'));
     assert.equal(invoke(root, 'docs/specs/example.md', { entry }), '');
+  });
+});
+
+test('replaying each host PostToolUse fixture produces equivalent findings, sentinel and host output', () => {
+  fixture((root) => {
+    const cleanRel = 'docs/specs/clean.md';
+    write(root, cleanRel, source('spec'));
+    const claudeClean = invoke(root, cleanRel, { raw: replayFixture('claude-post-tool-use.json', root, cleanRel).raw });
+    assert.equal(claudeClean, '');
+    assert.equal(isPending(root), true);
+    clearPending(root);
+
+    const codexClean = invoke(root, cleanRel, { raw: replayFixture('codex-post-tool-use.json', root, cleanRel).raw });
+    assert.equal(codexClean, '');
+    assert.equal(isPending(root), true);
+    clearPending(root);
+
+    const agyClean = invoke(root, cleanRel, { raw: replayFixture('antigravity-post-tool-use.json', root, cleanRel).raw });
+    assert.deepEqual(JSON.parse(agyClean), {});
+    assert.equal(isPending(root), true);
+    clearPending(root);
+
+    const badRel = 'docs/specs/Bad_Name.md';
+    write(root, badRel, source('review'));
+    const claudeBad = invoke(root, badRel, { raw: replayFixture('claude-post-tool-use.json', root, badRel).raw });
+    assert.match(claudeBad, /specs\/Bad_Name\.md:\d+ - .*kebab-case/);
+    assert.match(claudeBad, /specs\/Bad_Name\.md:\d+ - .*type `review`/);
+    assert.equal(isPending(root), true);
+    clearPending(root);
+
+    const codexBad = invoke(root, badRel, { raw: replayFixture('codex-post-tool-use.json', root, badRel).raw });
+    assert.equal(codexBad, claudeBad);
+    assert.equal(isPending(root), true);
+    clearPending(root);
+
+    const agyFixture = replayFixture('antigravity-post-tool-use.json', root, badRel);
+    const agyBad = JSON.parse(invoke(root, badRel, { raw: agyFixture.raw }));
+    assert.equal(agyBad.overwriteResult, `${agyFixture.payload.result}\n${claudeBad.trimEnd()}`);
+    assert.equal(isPending(root), true);
+  });
+});
+
+test('a multi-file Codex apply_patch checks each surviving docs file and arms the sentinel once', () => {
+  fixture((root) => {
+    write(root, 'docs/specs/Added_Bad.md', source('spec'));
+    write(root, 'docs/specs/Deleted_Bad.md', source('review'));
+    write(root, 'docs/specs/Moved_Bad.md', source('review'));
+    write(root, 'src/index.ts', 'export const x = 1;\n');
+    const countFile = join(root, 'sentinel-writes');
+    writeFileSync(countFile, '0');
+    const preload = write(root, 'count-sentinel.mjs', `import fs from 'node:fs';
+import {syncBuiltinESMExports} from 'node:module';
+const orig = fs.writeFileSync;
+fs.writeFileSync = (target, data, ...rest) => {
+  if (String(target) === process.env.SENTINEL_TARGET) {
+    const n = Number(fs.readFileSync(process.env.SENTINEL_COUNT, 'utf8')) + 1;
+    orig(process.env.SENTINEL_COUNT, String(n));
+  }
+  return orig(target, data, ...rest);
+};
+syncBuiltinESMExports();`);
+    const patch = [
+      'apply_patch <<\'PATCH\'',
+      '*** Begin Patch',
+      '*** Add File: docs/specs/Added_Bad.md',
+      '+# Added',
+      '*** Delete File: docs/specs/Deleted_Bad.md',
+      '-# Deleted',
+      '*** Update File: docs/specs/Old_Name.md',
+      '*** Move to: docs/specs/Moved_Bad.md',
+      '@@',
+      '+# Moved',
+      '*** Update File: src/index.ts',
+      '@@',
+      '+export const y = 2;',
+      '*** End Patch',
+      'PATCH',
+    ].join('\n');
+    const output = invoke(root, '', {
+      raw: JSON.stringify({ cwd: root, tool_name: 'Bash', tool_input: { command: patch } }),
+      flags: ['--import', pathToFileURL(preload).href],
+      env: { SENTINEL_TARGET: sentinelPath(root), SENTINEL_COUNT: countFile },
+    });
+    assert.match(output, /specs\/Added_Bad\.md:\d+ - .*kebab-case/);
+    assert.match(output, /specs\/Moved_Bad\.md:\d+ - .*kebab-case/);
+    assert.match(output, /specs\/Moved_Bad\.md:\d+ - .*type `review`/);
+    assert.doesNotMatch(output, /Deleted_Bad|Old_Name/);
+    assert.equal(isPending(root), true);
+    assert.equal(readFileSync(countFile, 'utf8'), '1');
+  });
+});
+
+test('unrecognized PostToolUse payloads exit 0 with the host empty output or nothing', () => {
+  fixture((root) => {
+    write(root, 'docs/specs/Bad_Name.md', source('review'));
+    for (const payload of [
+      { workspacePaths: [root], toolCall: { name: 'run_command', args: { CommandLine: 'npm test' } } },
+      { workspacePaths: [], toolCall: { name: 'write_file', args: { Path: 'docs/specs/Bad_Name.md' } } },
+      { conversationId: 'unknown-event' },
+    ]) {
+      const output = invoke(root, '', { raw: JSON.stringify(payload) });
+      assert.deepEqual(JSON.parse(output), {});
+      assert.equal(isPending(root), false);
+    }
+    for (const payload of [
+      { unknown: true },
+      { cwd: root, tool_name: 'Bash', tool_input: { command: 'echo hi' } },
+    ]) {
+      assert.equal(invoke(root, '', { raw: JSON.stringify(payload) }), '');
+      assert.equal(isPending(root), false);
+    }
   });
 });

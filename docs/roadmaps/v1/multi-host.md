@@ -26,14 +26,16 @@ Deps: host-research
 Notes:
 - 2026-11-03 Replaced `${CLAUDE_PLUGIN_ROOT}/bin/docs-lint.mjs` in all six `SKILL.md` files with `../../bin/docs-lint.mjs` relative to each `SKILL.md` and updated `tools/plugin-skills.mjs` and `tools/plugin-manifest.test.mjs` to forbid host variables and resolve relative skill CLI paths inside the plugin.
 
-### hook-adapters <!-- status: todo -->
+### hook-adapters <!-- status: done -->
 Intent: Each host's hook payload becomes one shape before the shared hook logic runs.
 Acceptance:
-- [ ] Replaying each host's PostToolUse fixture gives the same single-file findings and sentinel as the equivalent Claude write, in that host's required output: in Antigravity, `{}` when clean, otherwise `overwriteResult` holding the original tool result followed by the findings.
-- [ ] A Codex `apply_patch` touching several files, including an added, a deleted and a moved file, checks each surviving docs file and arms the sentinel once.
-- [ ] Each host's Stop fixture repairs from the right project root and prints that host's required output, which in Antigravity never asks the agent to continue.
-- [ ] An unrecognized payload exits 0 with the host's empty output, or nothing where the host allows it.
+- [x] Replaying each host's PostToolUse fixture gives the same single-file findings and sentinel as the equivalent Claude write, in that host's required output: in Antigravity, `{}` when clean, otherwise `overwriteResult` holding the original tool result followed by the findings.
+- [x] A Codex `apply_patch` touching several files, including an added, a deleted and a moved file, checks each surviving docs file and arms the sentinel once.
+- [x] Each host's Stop fixture repairs from the right project root and prints that host's required output, which in Antigravity never asks the agent to continue.
+- [x] An unrecognized payload exits 0 with the host's empty output, or nothing where the host allows it.
 Deps: host-research
+Notes:
+- 2026-11-03 Normalized Claude Code, Codex (`Write`/`Edit` and `apply_patch` headers) and Antigravity (`toolCall.args` and `workspacePaths`) payloads in `hooks/lib.mjs`, formatted host-required `PostToolUse` and `Stop` outputs in `hooks/post-write-check.mjs` and `hooks/stop-repair.mjs`, and added fixture replay, multi-file `apply_patch`, and unrecognized-payload tests in `tools/post-write-hook.test.mjs` and `tools/stop-hook.test.mjs`.
 
 ### host-manifests <!-- status: todo -->
 Intent: One checkout carries a manifest for every host, each registering the same skills and hooks.

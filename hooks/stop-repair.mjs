@@ -8,11 +8,18 @@ import { clearPending, isPending } from './pending.mjs';
 await guard(async () => {
   const payload = await readPayload();
   if (!payload) return;
-  const root = resolve(payload.cwd);
-  if (!isPending(root) || !isAdopted(root)) return;
+  const writeOutput = () => {
+    if (payload.host === 'antigravity') {
+      process.stdout.write(`${JSON.stringify(payload.stop ? { decision: 'stop' } : {})}\n`);
+    }
+  };
+  if (!payload.stop || !payload.root) return writeOutput();
+  const root = resolve(payload.root);
+  if (!isPending(root) || !isAdopted(root)) return writeOutput();
   const result = spawnSync(process.execPath, [cliPath, 'repair'], {
     cwd: root, encoding: 'utf8', timeout: 14000,
   });
   // A failure or timeout must preserve the only record that this turn needs a retry.
   if (!result.error && result.status === 0) clearPending(root);
+  writeOutput();
 });

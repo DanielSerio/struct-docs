@@ -40,8 +40,14 @@ function invoke(root, options = {}) {
   });
   assert.ifError(result.error);
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, '');
+  if (options.expectedStdout !== null) assert.equal(result.stdout, options.expectedStdout ?? '');
   assert.equal(result.stderr, '');
+  return result.stdout;
+}
+
+function replayStopFixture(name, root) {
+  return readFileSync(resolve('tests/fixtures/hooks', name), 'utf8')
+    .replaceAll('/workspace/project', root.replaceAll('\\', '/'));
 }
 
 function copiedHook(root, cli) {
@@ -164,5 +170,48 @@ syncBuiltinESMExports();`);
     assert.deepEqual(JSON.parse(readFileSync(probe, 'utf8')), {
       args: [resolve('bin/docs-lint.mjs'), 'repair'], timeout: 14000,
     });
+  });
+});
+
+test('each host Stop fixture repairs from the right project root and prints the host required output', () => {
+  for (const name of ['claude-stop.json', 'codex-stop.json']) {
+    fixture((root) => {
+      markPending(root);
+      const stdout = invoke(root, { raw: replayStopFixture(name, root) });
+      assert.equal(stdout, '');
+      assert.equal(isPending(root), false);
+      assert.match(readFileSync(join(root, 'docs/roadmaps/v1/index.md'), 'utf8'), /^status: in-progress$/m);
+    });
+  }
+  fixture((root) => {
+    markPending(root);
+    const stdout = invoke(root, { raw: replayStopFixture('antigravity-stop.json', root), expectedStdout: null });
+    const parsed = JSON.parse(stdout);
+    assert.equal(parsed.decision, 'stop');
+    assert.notEqual(parsed.decision, 'continue');
+    assert.equal(isPending(root), false);
+    assert.match(readFileSync(join(root, 'docs/roadmaps/v1/index.md'), 'utf8'), /^status: in-progress$/m);
+  });
+});
+
+test('unrecognized Stop payloads exit 0 with the host empty output or nothing', () => {
+  fixture((root) => {
+    markPending(root);
+    for (const payload of [
+      { workspacePaths: [], terminationReason: 'NO_TOOL_CALL' },
+      { workspacePaths: [root], toolCall: { name: 'write_file', args: { Path: 'docs/README.md' } } },
+      { conversationId: 'unknown-event' },
+    ]) {
+      const stdout = invoke(root, { raw: JSON.stringify(payload), expectedStdout: null });
+      assert.deepEqual(JSON.parse(stdout), {});
+      assert.equal(isPending(root), true);
+    }
+    for (const payload of [
+      { unknown: true },
+      { cwd: root, tool_name: 'Write', tool_input: { file_path: 'docs/README.md' } },
+    ]) {
+      assert.equal(invoke(root, { raw: JSON.stringify(payload) }), '');
+      assert.equal(isPending(root), true);
+    }
   });
 });
