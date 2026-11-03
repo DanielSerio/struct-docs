@@ -31,13 +31,13 @@ Acceptance:
 - [x] Where the Codex cache holds several versions of struct-docs, the highest version wins, and no install path is written into the project.
 Deps: project-cli-assets
 
-### generated-cli <!-- status: todo -->
+### generated-cli <!-- status: done -->
 Intent: Init leaves a project with one docs-lint command that runs plugin checks and its own rules.
 Acceptance:
-- [ ] On a fixture with a `package.json`, applying the project CLI writes `tools/docs-cli/` with the selected rules, adds Commander with the project's package manager and a `docs-lint` script, and keeps unrelated scripts byte-for-byte; on a fixture without one, it writes a private `tools/docs-cli/package.json` and leaves the project root untouched.
-- [ ] The generated CLI forwards structural commands and flags to the discovered bundle via `process.execPath` with an argument array from the project root, then runs the local rules over a project-owned directory list, and exits 1 when either reports an error.
-- [ ] With discovery unavailable, local rules still run and their errors still exit 1, while a missing plugin alone prints a warning naming host installation or `STRUCT_DOCS_ROOT` and exits 0; a discovered plugin that fails is an error.
-- [ ] `skills/init/SKILL.md` offers the project CLI with selectable rules and applies only what the user approves.
+- [x] On a fixture with a `package.json`, applying the project CLI writes `tools/docs-cli/` with the selected rules, adds Commander with the project's package manager and a `docs-lint` script, and keeps unrelated scripts byte-for-byte; on a fixture without one, it writes a private `tools/docs-cli/package.json` and leaves the project root untouched.
+- [x] The generated CLI forwards structural commands and flags to the discovered bundle via `process.execPath` with an argument array from the project root, then runs the local rules over a project-owned directory list, and exits 1 when either reports an error.
+- [x] With discovery unavailable, local rules still run and their errors still exit 1, while a missing plugin alone prints a warning naming host installation or `STRUCT_DOCS_ROOT` and exits 0; a discovered plugin that fails is an error.
+- [x] `skills/init/SKILL.md` offers the project CLI with selectable rules and applies only what the user approves.
 Deps: plugin-discovery
 
 ### commit-gate <!-- status: todo -->

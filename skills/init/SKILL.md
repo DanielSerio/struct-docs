@@ -81,8 +81,19 @@ node "../../bin/docs-lint.mjs" init --apply
 
 Resolve findings within the approved scope and verify the repeated apply changes nothing.
 Report what moved, ownership/config choices, preserved content and remaining findings.
-Offer the project CLI with selectable house-style rules, then a pre-commit hook or an
-existing-check integration. Respect declines. Use shipped capabilities; if a requested
-capability is not yet shipped, say so rather than inventing commands, flags or assets.
-Edit no global settings or hooks, and never migrate another original repository as a
+
+Next, offer the optional project CLI at `tools/docs-cli/` with selectable house-style rules
+(`line-length`, `heading-gap`, `stale-pointer` and `file-size`, defaulting to `docs/specs/`).
+Apply only what the user approves: copy `command-shell.mjs`, `discover-plugin.mjs`,
+`read-document.mjs`, `report.mjs` and the approved rule `.mjs` files from
+`../../assets/project-cli/` into `tools/docs-cli/`, write `tools/docs-cli/index.mjs` with
+the approved rules and `DOCS_DIRS`, and if `package.json` exists add `commander` with the
+project's package manager and a `"docs-lint": "node tools/docs-cli/index.mjs"` script while
+preserving unrelated scripts byte-for-byte; if the project has no `package.json`, write a
+private `tools/docs-cli/package.json` and leave the project root untouched.
+
+After the project CLI, offer a local commit gate (either a pre-commit hook or an addition
+to the existing check script) using the project's package manager while preserving existing
+hook or check behavior and running `docs-lint` once per commit. Respect declines at each
+step. Edit no global settings or hooks, and never migrate another original repository as a
 side effect. Work on an explicitly named disposable copy for migration rehearsals.
