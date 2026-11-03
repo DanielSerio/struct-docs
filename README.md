@@ -1,30 +1,27 @@
 # Struct Docs
 
 A coding-agent plugin for configurable documentation structure and roadmap progress, built
-for Claude Code, Codex and Antigravity. Claude Code is the only supported host today; Codex
-and Antigravity support is planned in the `multi-host` milestone of
-[the v1 roadmap](docs/roadmaps/v1/index.md).
+for Claude Code, Codex and Antigravity.
 It ships six skills: `init`, `audit`, `roadmap`, `review`, `fold` and `execute-roadmap`.
-Node 22+ and Claude Code are required for now. The committed CLI includes Commander and YAML;
+Node 22+ is required. The committed CLI includes Commander and YAML;
 plugin users do not run `npm install`.
 
 ## Install from git
 
-Clone the repository, then load it for a Claude Code session in your project:
+Clone the repository once:
 
 ```sh
 git clone <repository-url> /path/to/struct-docs
+```
+
+### Claude Code
+
+Load the checkout for a session in your project:
+
+```sh
 cd /path/to/your-project
 claude --plugin-dir /path/to/struct-docs
 ```
-
-Use `/struct-docs:init` to survey existing content and propose a concrete adoption plan.
-Existing structures, inferred ownership topics and migration moves require approval.
-The other skills are `/struct-docs:audit`, `/struct-docs:roadmap`,
-`/struct-docs:review`, `/struct-docs:fold` and `/struct-docs:execute-roadmap <file>`.
-Execution validates the entire dependency graph before changing files or branches, then
-works only within the named index or milestone. It never pushes or merges.
-The plugin adds no global `CLAUDE.md` or `settings.json` entries.
 
 For local Windows development, an optional junction can give the checkout a stable path.
 Choose an unused link location; these commands do not replace an existing directory:
@@ -36,7 +33,43 @@ New-Item -ItemType Junction -Path $pluginLink -Target 'C:\developer\struct-docs'
 claude --plugin-dir $pluginLink
 ```
 
-Loading with `--plugin-dir` applies only to that session. No global settings edit is needed.
+Loading with `--plugin-dir` applies only to that session. No global `CLAUDE.md` or
+`settings.json` edit is needed.
+
+### Codex
+
+Register a local marketplace directory pointing at the cloned plugin and install it:
+
+```sh
+mkdir -p /path/to/marketplace/.agents/plugins /path/to/marketplace/plugins
+git clone <repository-url> /path/to/marketplace/plugins/struct-docs
+printf '%s\n' '{"name":"local","plugins":[{"name":"struct-docs","source":{"source":"local","path":"./plugins/struct-docs"}}]}' > /path/to/marketplace/.agents/plugins/marketplace.json
+codex plugin marketplace add /path/to/marketplace
+codex plugin add struct-docs@local
+```
+
+Enable Codex hooks with `codex --enable hooks` (or set `codex_hooks = true` under `[features]`
+in `~/.codex/config.toml`). Codex fingerprints plugin hooks and requires hook trust before
+running `PostToolUse` and `Stop`: approve the hook trust prompt when starting a session in
+your project, or pass `--dangerously-bypass-hook-trust` for non-interactive `codex exec` runs.
+
+### Antigravity
+
+Install the cloned plugin into Antigravity's plugin directory (or place a copy under
+`<your-project>/.agents/plugins/struct-docs`):
+
+```sh
+agy plugin install /path/to/struct-docs
+```
+
+### Skills
+
+Use `/struct-docs:init` (`$struct-docs:init` in Codex, or the `init` skill in Antigravity)
+to survey existing content and propose a concrete adoption plan. Existing structures,
+inferred ownership topics and migration moves require approval. The other skills are
+`audit`, `roadmap`, `review`, `fold` and `execute-roadmap <file>`.
+Execution validates the entire dependency graph before changing files or branches, then
+works only within the named index or milestone. It never pushes or merges.
 
 ## CLI and hooks
 

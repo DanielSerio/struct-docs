@@ -2,9 +2,9 @@
 
 ## Project Structure & Module Organization
 
-Struct Docs is a coding-agent plugin with a bundled Node.js CLI, built for Claude Code, Codex and Antigravity; Claude Code is the only supported host until the `multi-host` milestone lands. TypeScript source lives in `scripts/`, organized into `policy`, `read`, `render`, `roadmap`, `check`, `repair`, and `commands` layers. ESLint enforces their import boundaries (`tools/eslint/layer-imports.mjs`); see `docs/specs/cli.md` before changing dependencies, and add a new layer to that rule before using it.
+Struct Docs is a coding-agent plugin with a bundled Node.js CLI, built for Claude Code, Codex and Antigravity. TypeScript source lives in `scripts/`, organized into `policy`, `read`, `render`, `roadmap`, `check`, `repair`, and `commands` layers. ESLint enforces their import boundaries (`tools/eslint/layer-imports.mjs`); see `docs/specs/cli.md` before changing dependencies, and add a new layer to that rule before using it.
 
-`skills/` contains six workflows; `hooks/` contains dependency-free hook entry points. `.claude-plugin/plugin.json` registers the plugin. Keep skills and hooks portable across hosts: host differences belong only in manifests and hook payload adapters (`docs/specs/packaging.md`). `assets/` holds the review template, and `bin/docs-lint.mjs` is the committed distribution bundle. Tests are colocated with source and in `tests/`; development utilities and additional tests live in `tools/`. Treat `dist/` as disposable test output. Start documentation discovery at `docs/README.md`.
+`skills/` contains six workflows; `hooks/` contains dependency-free hook entry points. `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, `.antigravity-plugin/plugin.json`, and `hooks.json` register the plugin across hosts. Keep skills and hooks portable across hosts: host differences belong only in manifests and hook payload adapters (`docs/specs/packaging.md`). `assets/` holds the review template, and `bin/docs-lint.mjs` is the committed distribution bundle. Tests are colocated with source and in `tests/`; development utilities and additional tests live in `tools/`. Treat `dist/` as disposable test output. Start documentation discovery at `docs/README.md`.
 
 ## Build, Test, and Development Commands
 

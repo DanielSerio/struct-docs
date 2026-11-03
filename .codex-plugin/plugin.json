@@ -5,29 +5,5 @@
     "name": "Dan Serio"
   },
   "description": "Configurable documentation structure, roadmap progress, and plan-first documentation workflows.",
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|Bash|apply_patch|exec_command",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/post-write-check.mjs\"",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-repair.mjs\"",
-            "timeout": 15
-          }
-        ]
-      }
-    ]
-  }
+  "hooks": "./.codex-plugin/hooks.json"
 }

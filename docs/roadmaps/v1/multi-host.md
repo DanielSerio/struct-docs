@@ -2,7 +2,7 @@
 id: multi-host
 title: Multi-host support
 type: roadmap-node
-status: in-progress
+status: done
 intent: One plugin checkout installs and behaves alike in Claude Code, Codex and Antigravity.
 ---
 
@@ -47,10 +47,12 @@ Deps: skill-paths, hook-adapters
 Notes:
 - 2026-11-03 Added `.codex-plugin/plugin.json`, `.antigravity-plugin/plugin.json`, and `hooks.json`; shared `copiedPlugin` in `tools/plugin-files.mjs` so manifest tests and strict host validators check the same shipped file set while keeping `CLAUDE.md` and `AGENTS.md` at the repository root; updated `tools/plugin-manifest.mjs`, `tools/plugin-skills.mjs`, `tools/plugin-manifest.test.mjs`, `AGENTS.md`, and `README.md`; verified `node tools/plugin-files.mjs claude plugin validate --strict` and `node tools/plugin-files.mjs agy plugin validate --strict` both pass.
 
-### host-rehearsals <!-- status: todo -->
+### host-rehearsals <!-- status: done -->
 Intent: Each host is shown working from a git install, and the README says how to install in each.
 Acceptance:
-- [ ] In each host, a git-installed plugin on a fixture project runs the audit skill, and a docs edit produces post-write feedback and a Stop repair.
-- [ ] The execution rehearsal runs in each host with its own subagents, or stops before changing anything where a host has none.
-- [ ] The README gives install steps per host, including Codex hook trust, and no longer says Claude Code is the only supported host.
+- [x] In each host, a git-installed plugin on a fixture project runs the audit skill, and a docs edit produces post-write feedback and a Stop repair.
+- [x] The execution rehearsal runs in each host with its own subagents, or stops before changing anything where a host has none.
+- [x] The README gives install steps per host, including Codex hook trust, and no longer says Claude Code is the only supported host.
 Deps: host-manifests
+Notes:
+- 2026-11-03 Rehearsed a git-cloned plugin across Claude Code (`session 9911402d-ed72-4044-83c1-8760ab3ffbb8`), Codex (`session 01a1a241-8ecf-7fb0-8c8d-43b0cb3bfa15`, via `.codex-plugin/hooks.json`), and Antigravity (`agy plugin install`) on fresh rehearsal fixtures: each host ran the `audit` skill cleanly, reported the `kebab-case` finding on `docs/specs/Bad_Name.md` from `PostToolUse`, and repaired `docs/README.md` on `Stop`. Rehearsed `execute-roadmap` on `docs/roadmaps/release/greeting.md` with each host's real subagents on `work/greeting`: Claude Code committed `6fe3f63`, `d7e324f`, and `e9e4cc3` above `2039efd`; Codex (`session 01a1a244-a7dd-7250-a45d-06e384e607c9`) committed `308b20e`, `7297bbd`, and `f67dfef` above `98b97c1`; Antigravity committed `5daf903`, `b66e637`, and `36798bc` above `4588e72`. Updated `README.md` and `AGENTS.md` with per-host install steps and Codex hook trust.

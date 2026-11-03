@@ -28,7 +28,7 @@ Breakout: ./documentation-workflows.md
 Deps: documentation-workflows
 Breakout: ./whole-roadmap-execution.md
 
-### multi-host <!-- status: in-progress -->
+### multi-host <!-- status: done -->
 Deps: whole-roadmap-execution
 Breakout: ./multi-host.md
 

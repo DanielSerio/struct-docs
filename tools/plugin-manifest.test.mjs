@@ -47,8 +47,8 @@ test('missing referenced bundle, asset, manifest and hook target fail plugin val
     assert.ok(validatePlugin(root).some((message) => message.includes('hooks/missing.mjs')));
   });
   copiedPlugin((root) => {
-    changeJson(root, '.codex-plugin/plugin.json', (manifest) => {
-      manifest.hooks.Stop[0].hooks[0].command = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/missing-codex.mjs"';
+    changeJson(root, '.codex-plugin/hooks.json', (config) => {
+      config.hooks.Stop[0].hooks[0].command = 'node "${CLAUDE_PLUGIN_ROOT}/hooks/missing-codex.mjs"';
     });
     assert.ok(validatePlugin(root).some((message) => message.includes('hooks/missing-codex.mjs')));
   });
@@ -97,7 +97,7 @@ test('both hook events and host matchers are required in every host registration
       assert.ok(validatePlugin(root).some((message) => message.includes(`missing or invalid ${event} hook (claude)`)));
     });
     copiedPlugin((root) => {
-      changeJson(root, '.codex-plugin/plugin.json', (manifest) => { delete manifest.hooks[event]; });
+      changeJson(root, '.codex-plugin/hooks.json', (config) => { delete config.hooks[event]; });
       assert.ok(validatePlugin(root).some((message) => message.includes(`missing or invalid ${event} hook (codex)`)));
     });
     copiedPlugin((root) => {
