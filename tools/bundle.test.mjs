@@ -3,11 +3,13 @@ import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { test } from 'node:test';
-import { buildBundle, repositoryRoot } from './build-bundle.mjs';
+import { buildBundle, buildProjectCliAssets, projectCliEntries, repositoryRoot } from './build-bundle.mjs';
 
 const committedBundle = join(repositoryRoot, 'bin/docs-lint.mjs');
-const regeneration = 'Bundle is missing or stale; run npm run build';
+const committedProjectCliDir = join(repositoryRoot, 'assets/project-cli');
+const regeneration = 'Bundle or project-cli asset is missing or stale; run npm run build';
 
 function assertFresh(candidate, rebuilt) {
   assert.ok(existsSync(candidate), regeneration);
@@ -57,6 +59,65 @@ test('committed bundle is byte-fresh, with only Node builtins external and inlin
     writeFileSync(stale, 'stale');
     assert.throws(() => assertFresh(stale, rebuilt), /npm run build/);
     assert.throws(() => assertFresh(join(root, 'missing.mjs'), rebuilt), /npm run build/);
+  });
+});
+
+test('emitted project-cli assets are byte-fresh and import only each other, Commander and Node builtins', async () => {
+  await temporary(async (root) => {
+    const rebuiltDir = join(root, 'project-cli');
+    const results = await buildProjectCliAssets(rebuiltDir);
+    const names = projectCliEntries.map(([name]) => name);
+    for (const name of names) {
+      const committed = join(committedProjectCliDir, name);
+      const rebuilt = join(rebuiltDir, name);
+      assertFresh(committed, rebuilt);
+      const imports = Object.values(results[name].metafile.outputs)
+        .flatMap((output) => output.imports)
+        .map((dependency) => dependency.path);
+      for (const spec of imports) {
+        const validSibling = spec.startsWith('./') && names.includes(spec.slice(2));
+        const validExternal = spec === 'commander' || /^node:(?:fs|os|path|child_process|url)$/.test(spec);
+        assert.ok(validSibling || validExternal, `unexpected import ${spec} in ${name}`);
+      }
+      const mutated = join(root, `mutated-${name}`);
+      const bytes = Buffer.from(readFileSync(rebuilt));
+      bytes[0] ^= 1;
+      writeFileSync(mutated, bytes);
+      assert.throws(() => assertFresh(mutated, rebuilt), /npm run build/);
+    }
+  });
+});
+
+test('emitted reader and reporter print the same file:line - problem lines and exit status as the bundle', async () => {
+  await temporary(async (root) => {
+    const readerUrl = pathToFileURL(join(committedProjectCliDir, 'read-document.mjs')).href;
+    const reporterUrl = pathToFileURL(join(committedProjectCliDir, 'report.mjs')).href;
+    const { frontmatterFindings, readProjectDocument } = await import(readerUrl);
+    const { findingsExitCode, formatReport } = await import(reporterUrl);
+
+    write(root, 'docs/specs/bad.md', '---\ntitle: Bad\n  indented: nope\n---\n');
+    const bundleBad = spawnSync(process.execPath, [committedBundle, 'check', 'docs/specs/bad.md'], {
+      cwd: root, encoding: 'utf8',
+    });
+    const docBad = readProjectDocument(root, 'docs/specs/bad.md');
+    assert.ok(docBad);
+    const badFindings = frontmatterFindings(docBad);
+    assert.equal(formatReport(badFindings), bundleBad.stdout);
+    assert.equal(findingsExitCode(badFindings), bundleBad.status);
+    assert.match(bundleBad.stdout, /^specs\/bad\.md:3 - frontmatter:/);
+    assert.equal(bundleBad.status, 1);
+
+    write(root, 'docs/specs/clean.md', '---\ntitle: Clean\ntype: spec\nstatus: active\npurpose: Clean spec.\nowns: [clean-spec]\n---\n');
+    const bundleClean = spawnSync(process.execPath, [committedBundle, 'check', 'docs/specs/clean.md'], {
+      cwd: root, encoding: 'utf8',
+    });
+    const docClean = readProjectDocument(root, 'docs/specs/clean.md');
+    assert.ok(docClean);
+    const cleanFindings = frontmatterFindings(docClean);
+    assert.equal(formatReport(cleanFindings), bundleClean.stdout);
+    assert.equal(findingsExitCode(cleanFindings), bundleClean.status);
+    assert.equal(bundleClean.stdout, '');
+    assert.equal(bundleClean.status, 0);
   });
 });
 

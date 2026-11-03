@@ -9,7 +9,7 @@ export type CommandOptions = {
   fix?: boolean;
   verbose?: boolean;
 };
-export type CommandResult = { findings: readonly Finding[]; stdout?: string };
+export type CommandResult = { findings: readonly Finding[]; stdout?: string; exitCode?: number };
 export type CommandHandler = (options: CommandOptions) => CommandResult | Promise<CommandResult>;
 export type CommandHandlers = Record<CommandName, CommandHandler>;
 export type CliProgram = Command & {

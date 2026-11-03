@@ -8,7 +8,7 @@ import { clearPending } from '../hooks/pending.mjs';
 export const repository = fileURLToPath(new URL('../', import.meta.url));
 export const shippedPluginPaths = [
   '.claude-plugin', '.codex-plugin', '.antigravity-plugin', 'hooks.json',
-  'skills', 'hooks', 'README.md', 'bin/docs-lint.mjs', 'assets/code-review-v1.md',
+  'skills', 'hooks', 'README.md', 'bin/docs-lint.mjs', 'assets/code-review-v1.md', 'assets/project-cli',
 ];
 
 /** Create a temporary plugin install holding only shipped files for tests and host validators. */

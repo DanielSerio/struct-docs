@@ -15,12 +15,12 @@ Acceptance:
 - [x] Each rule takes one parsed document, reads only its path, source, lines and frontmatter, and returns findings; none reads files, prints or imports Commander.
 - [x] By default each rule covers only Markdown files directly under `docs/specs/`, so roadmap acceptance lines and ignored working notes produce no findings.
 
-### project-cli-assets <!-- status: todo -->
+### project-cli-assets <!-- status: done -->
 Intent: The plugin ships a copyable CLI kit built from the same sources as its bundle.
 Acceptance:
-- [ ] `npm run build` emits the Commander setup, document reader, finding reporter and the four rules as plain `.mjs` under `assets/project-cli/`, and the emitted files import only each other and Commander.
-- [ ] The freshness test fails when any emitted file differs by a byte from a fresh build, and names the regeneration command.
-- [ ] For the same fixture document, the emitted reader and reporter print the same `file:line - problem` lines and exit status as the bundle.
+- [x] `npm run build` emits the Commander setup, document reader, finding reporter and the four rules as plain `.mjs` under `assets/project-cli/`, and the emitted files import only each other and Commander.
+- [x] The freshness test fails when any emitted file differs by a byte from a fresh build, and names the regeneration command.
+- [x] For the same fixture document, the emitted reader and reporter print the same `file:line - problem` lines and exit status as the bundle.
 Deps: house-style-rules
 
 ### plugin-discovery <!-- status: todo -->

@@ -1,19 +1,20 @@
-import { lstatSync, readFileSync, realpathSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { classify } from '../policy/classify.js';
 import type { Classification } from '../policy/classify.js';
 import type { Config } from '../policy/config-types.js';
 import type { DocumentContext, ParsedDocument } from '../policy/document.js';
-import { parseFrontmatter } from './frontmatter.js';
+import { parseProjectDocument, readDocsSource } from './project-document.js';
 import { parseBody } from './roadmap-body.js';
 
 /** Pure document construction also lets rule tests use plain source objects. */
 export function parseDocument<Context extends DocumentContext = DocumentContext>(
   path: string, source: string, classification: Classification, context?: Readonly<Context>): ParsedDocument<Context> {
-  const frontmatter = parseFrontmatter(source);
-  const roadmap = classification.cls === 'roadmap' && frontmatter.ok ? parseBody(source, frontmatter.endLine) : undefined;
+  const base = parseProjectDocument(path, source);
+  const roadmap = classification.cls === 'roadmap' && base.frontmatter.ok
+    ? parseBody(source, base.frontmatter.endLine)
+    : undefined;
   return {
-    path, source, lines: source.split(/\r?\n/), frontmatter,
+    ...base,
     ...(roadmap ? { roadmap } : {}),
     classification, ...(context ? { context } : {}),
   };
@@ -30,15 +31,6 @@ export function readDocument(root: string, path: string, config: Config): Parsed
   const normalized = local.split(sep).join('/');
   const classification = classify(normalized, config);
   if (classification.cls !== 'live' && classification.cls !== 'roadmap') return undefined;
-  try {
-    if (lstatSync(docs).isSymbolicLink()) throw new Error('docs/ must not be a symbolic link');
-    const realLocal = relative(realpathSync(docs), realpathSync(absolute));
-    if (isAbsolute(realLocal) || realLocal === '..' || realLocal.startsWith(`..${sep}`)) {
-      throw new Error('document path must stay inside docs/');
-    }
-    return parseDocument(normalized, readFileSync(absolute, 'utf8'), classification, { config });
-  } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return undefined;
-    throw error;
-  }
+  const raw = readDocsSource(root, normalized);
+  return raw ? parseDocument(raw.path, raw.source, classification, { config }) : undefined;
 }

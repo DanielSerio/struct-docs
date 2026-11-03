@@ -1,6 +1,23 @@
 import { Command } from 'commander';
 import { findingsExitCode, formatReport } from '../render/report.js';
+import { register as registerAudit } from './audit.js';
+import { register as registerCheck } from './check.js';
 import type { CliOptions, CliProgram, CommandHandlers, CommandName, CommandOptions } from './command-types.js';
+import { register as registerInit } from './init.js';
+import { register as registerRepair } from './repair.js';
+import { runProgram } from './run-program.js';
+import { register as registerStatus } from './status.js';
+
+export { runProgram };
+
+/** Register the five standard docs-lint commands on any shared shell program. */
+export function registerCommands(program: CliProgram) {
+  registerInit(program);
+  registerAudit(program);
+  registerCheck(program);
+  registerRepair(program);
+  registerStatus(program);
+}
 
 /** Shared setup takes behavior as data; copied project CLIs never import plugin handlers. */
 export function createCommandShell(options: CliOptions & { handlers: CommandHandlers }) {
@@ -13,7 +30,7 @@ export function createCommandShell(options: CliOptions & { handlers: CommandHand
       if (result.stdout) writeOut(result.stdout);
       const report = formatReport(result.findings, flags);
       if (report) writeOut(report);
-      exitCode = findingsExitCode(result.findings);
+      exitCode = Math.max(result.exitCode ?? 0, findingsExitCode(result.findings));
     },
   });
   program.name('docs-lint').description('Validate documentation structure')
