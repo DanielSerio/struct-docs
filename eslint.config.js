@@ -5,7 +5,7 @@ import stylistic from '@stylistic/eslint-plugin';
 import layerImports from './tools/eslint/layer-imports.mjs';
 
 export default tseslint.config(
-  { ignores: ['node_modules/**', 'dist/**', 'bin/**', 'assets/project-cli/**'] },
+  { ignores: ['node_modules/**', 'dist/**', 'bin/**', 'assets/project-cli/**', 'hooks/project-root.mjs'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

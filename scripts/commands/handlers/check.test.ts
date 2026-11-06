@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 import { tempDocs } from '../../../tests/utils/temp-docs.js';
@@ -18,10 +18,15 @@ test('one-file handler reports only parse, naming and placement without sibling 
   });
 });
 
-test('missing, outside and excluded paths are silent while existing forbidden root files fail', () => {
+test('outside and excluded files are silent, missing files are errors and forbidden root files fail', () => {
   tempDocs({ 'living/notes.md': 'not frontmatter', 'random.txt': 'root file' }, (root) => {
-    for (const file of ['docs/specs/missing.md', 'docs/missing.txt', 'elsewhere.md', 'docs/living/notes.md']) {
+    writeFileSync(join(root, 'elsewhere.md'), 'outside docs');
+    for (const file of ['elsewhere.md', 'docs/living/notes.md']) {
       assert.deepEqual(run({ root, file }).findings, [], file);
+    }
+    // A typo, inside docs/ or out of it, must not read as a clean result.
+    for (const file of ['docs/specs/missing.md', 'docs/missing.txt', 'doc/specs/auth.md']) {
+      assert.throws(() => run({ root, file }), /no such file/, file);
     }
     assert.equal(run({ root, file: 'docs/random.txt' }).findings[0]?.rule, 'filing');
     mkdirSync(join(root, 'docs/specs'));
@@ -47,5 +52,8 @@ test('real check process ignores full-schema gaps and exits two on an execution 
     const failed = spawnSync(process.execPath, [entry, 'check', 'docs/specs/directory.md'], { cwd: root, encoding: 'utf8' });
     assert.equal(failed.status, 2);
     assert.match(failed.stderr, /file/);
+    const missing = spawnSync(process.execPath, [entry, 'check', 'docs/specs/nope.md'], { cwd: root, encoding: 'utf8' });
+    assert.equal(missing.status, 2);
+    assert.match(missing.stderr, /no such file/);
   });
 });

@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
+export const hookModule = 'hooks/project-root.mjs';
 export const projectCliEntries = [
   ['command-shell.mjs', 'scripts/commands/command-shell.ts'],
   ['discover-plugin.mjs', 'scripts/read/discover-plugin.ts'],
@@ -67,7 +68,28 @@ export async function buildProjectCliAssets(outdir = resolve(repositoryRoot, 'as
   return results;
 }
 
+/**
+ * Emit the hooks' project lookup from the CLI's own source. Hooks stay dependency-free plain
+ * `.mjs`, but the CLI and the hooks share one definition of an adopted project.
+ */
+export async function buildHookModules(outfile = resolve(repositoryRoot, hookModule)) {
+  return build({
+    absWorkingDir: repositoryRoot,
+    entryPoints: ['scripts/read/project-root.ts'],
+    outfile,
+    bundle: true,
+    platform: 'node',
+    target: 'node22',
+    format: 'esm',
+    charset: 'utf8',
+    sourcemap: false,
+    metafile: true,
+    banner: { js: '// Generated from scripts/read/project-root.ts by npm run build; do not edit.' },
+  });
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   await buildBundle();
   await buildProjectCliAssets();
+  await buildHookModules();
 }

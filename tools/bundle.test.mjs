@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { test } from 'node:test';
-import { buildBundle, buildProjectCliAssets, projectCliEntries, repositoryRoot } from './build-bundle.mjs';
+import { buildBundle, buildHookModules, buildProjectCliAssets, hookModule, projectCliEntries, repositoryRoot } from './build-bundle.mjs';
 
 const committedBundle = join(repositoryRoot, 'bin/docs-lint.mjs');
 const committedProjectCliDir = join(repositoryRoot, 'assets/project-cli');
@@ -85,6 +85,16 @@ test('emitted project-cli assets are byte-fresh and import only each other, Comm
       writeFileSync(mutated, bytes);
       assert.throws(() => assertFresh(mutated, rebuilt), /npm run build/);
     }
+  });
+});
+
+test('the hooks project lookup is byte-fresh and imports only Node builtins', async () => {
+  await temporary(async (root) => {
+    const rebuilt = join(root, 'project-root.mjs');
+    const { metafile } = await buildHookModules(rebuilt);
+    assertFresh(join(repositoryRoot, hookModule), rebuilt);
+    const imports = Object.values(metafile.outputs).flatMap((output) => output.imports).map(({ path }) => path);
+    assert.ok(imports.every((path) => /^node:(?:fs|path)$/.test(path)), imports.join(', '));
   });
 });
 

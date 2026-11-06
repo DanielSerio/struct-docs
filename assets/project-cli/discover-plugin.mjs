@@ -19,17 +19,15 @@ function compareVersionsDesc(left, right) {
   if (leftPre !== void 0 && rightPre === void 0) return 1;
   return (rightPre ?? "").localeCompare(leftPre ?? "", void 0, { numeric: true, sensitivity: "base" });
 }
+var isRecord = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 function claudeRegistryCandidates(home) {
   const registryPath = join(home, ".claude", "plugins", "installed_plugins.json");
   try {
     const raw = JSON.parse(readFileSync(registryPath, "utf8"));
-    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return [];
-    const record = raw;
-    const plugins = record.plugins && typeof record.plugins === "object" && !Array.isArray(record.plugins) ? record.plugins : record;
+    if (!isRecord(raw) || !isRecord(raw.plugins)) return [];
     const matches = [];
-    for (const [key, value] of Object.entries(plugins)) {
-      if (key !== "struct-docs" && !key.startsWith("struct-docs@")) continue;
-      const items = Array.isArray(value) ? value : [value];
+    for (const [key, items] of Object.entries(raw.plugins)) {
+      if (!key.startsWith("struct-docs@") || !Array.isArray(items)) continue;
       for (const item of items) {
         if (!item || typeof item !== "object") continue;
         const entry = item;
@@ -52,19 +50,12 @@ function codexCacheCandidates(home, env) {
   if (!existsSync(cacheRoot)) return [];
   try {
     const versioned = [];
-    const collectVersions = (pluginDir) => {
+    for (const marketplace of readdirSync(cacheRoot, { withFileTypes: true })) {
+      const pluginDir = join(cacheRoot, marketplace.name, "struct-docs");
+      if (!marketplace.isDirectory() || !existsSync(pluginDir)) continue;
       for (const entry of readdirSync(pluginDir, { withFileTypes: true })) {
         if (entry.isDirectory()) versioned.push({ path: join(pluginDir, entry.name), version: entry.name });
       }
-    };
-    for (const entry of readdirSync(cacheRoot, { withFileTypes: true })) {
-      if (!entry.isDirectory()) continue;
-      if (entry.name === "struct-docs") {
-        collectVersions(join(cacheRoot, entry.name));
-        continue;
-      }
-      const nested = join(cacheRoot, entry.name, "struct-docs");
-      if (existsSync(nested)) collectVersions(nested);
     }
     return versioned.sort((a, b) => compareVersionsDesc(a.version, b.version)).map((item) => item.path);
   } catch {
@@ -79,8 +70,8 @@ function discoverPlugin(options = {}) {
     ...claudeRegistryCandidates(home),
     join(home, ".claude", "skills", "struct-docs"),
     ...codexCacheCandidates(home, env),
-    join(home, ".gemini", "config", "plugins", "struct-docs"),
-    join(home, ".antigravity", "plugins", "struct-docs")
+    options.project ? join(options.project, ".agents", "plugins", "struct-docs") : void 0,
+    join(home, ".gemini", "config", "plugins", "struct-docs")
   ];
   return candidates.find(hasBundle);
 }

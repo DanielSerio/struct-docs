@@ -1,44 +1,20 @@
-import { lstatSync, readFileSync } from 'node:fs';
-import { isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const cliPath = fileURLToPath(new URL('../bin/docs-lint.mjs', import.meta.url));
-const antigravityWriteTools = new Set([
-  'write_file', 'edit_file', 'write_to_file', 'Write', 'Edit', 'replace_file_content', 'multi_replace_file_content',
-]);
+const antigravityWriteTools = new Set(['write_file', 'edit_file']);
 
-/** Only an unambiguous ordered marker pair opts a project into either hook. */
-export function isAdopted(root) {
-  try {
-    const lines = readFileSync(join(root, 'docs/README.md'), 'utf8').split(/\r?\n/).map((line) => line.trim());
-    const open = lines.flatMap((line, index) => line === '<!-- struct-docs:index -->' ? [index] : []);
-    const close = lines.flatMap((line, index) => line === '<!-- /struct-docs:index -->' ? [index] : []);
-    return open.length === 1 && close.length === 1 && open[0] < close[0];
-  } catch {
-    return false;
-  }
-}
-
-export function writtenFile(root, value) {
-  if (typeof value !== 'string' || !value) return undefined;
-  const file = resolve(root, value.replaceAll('\\', '/'));
-  try {
-    return lstatSync(file).isFile() ? file : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-export function isUnderDocs(root, file) {
-  const path = relative(resolve(root, 'docs'), file);
-  return path !== '' && path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path);
-}
+/**
+ * Every observed Antigravity payload carries these two and no Claude or Codex payload does.
+ * Requiring more would silently stop the hooks if a later version omits an empty field.
+ */
+const isAntigravityPayload = (value) => Array.isArray(value.workspacePaths) && typeof value.conversationId === 'string';
 
 /** Extract surviving file paths from a Codex apply_patch command string. */
 export function parsePatchFiles(command) {
   if (typeof command !== 'string' || !command.includes('*** Begin Patch')) return [];
   const entries = [];
-  for (const rawLine of command.split(/\r?\n|`n/)) {
+  for (const rawLine of command.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (line.startsWith('*** Add File: ')) {
       entries.push({ path: line.slice('*** Add File: '.length).trim(), deleted: false });
@@ -62,35 +38,33 @@ export async function readPayload() {
   for await (const chunk of process.stdin) raw += chunk;
   const value = JSON.parse(raw);
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
-  const isAntigravity = Array.isArray(value.workspacePaths) || 'toolCall' in value ||
-    'conversationId' in value || 'terminationReason' in value || 'artifactDirectoryPath' in value;
-  if (isAntigravity) {
-    const root = Array.isArray(value.workspacePaths) && typeof value.workspacePaths[0] === 'string' &&
-      value.workspacePaths[0] ? value.workspacePaths[0] : undefined;
-    const args = value.toolCall?.args;
-    const file = antigravityWriteTools.has(value.toolCall?.name)
-      ? (args?.Path ?? args?.path ?? args?.TargetFile ?? args?.targetFile ?? args?.filePath ?? args?.file_path)
-      : undefined;
+  if (isAntigravityPayload(value)) {
+    // A multi-root workspace lists every root; a write or a repair may belong to any of them.
+    const roots = value.workspacePaths.filter((path) => typeof path === 'string' && path);
+    const file = antigravityWriteTools.has(value.toolCall?.name) ? value.toolCall?.args?.Path : undefined;
     return {
       host: 'antigravity',
-      root,
+      roots,
       files: typeof file === 'string' && file ? [file] : [],
-      result: typeof value.result === 'string' ? value.result : '',
-      stop: root !== undefined && !('toolCall' in value),
+      stop: roots.length > 0 && !('toolCall' in value),
     };
   }
   if (typeof value.cwd !== 'string' || !value.cwd) return undefined;
-  const files = (value.tool_name === undefined || ['Write', 'Edit'].includes(value.tool_name)) &&
-    typeof value.tool_input?.file_path === 'string' && value.tool_input.file_path
-    ? [value.tool_input.file_path]
-    : ['Bash', 'apply_patch', 'exec_command'].includes(value.tool_name)
-      ? parsePatchFiles(value.tool_input?.command)
-      : [];
+  // Codex's exec_command takes a `workdir`, where a patch's relative headers start. If a payload
+  // carries it, try it before the session directory.
+  const workdir = value.tool_input?.workdir;
+  const roots = typeof workdir === 'string' && workdir ? [resolve(value.cwd, workdir), value.cwd] : [value.cwd];
+  const written = (value.tool_name === undefined || ['Write', 'Edit'].includes(value.tool_name)) &&
+    typeof value.tool_input?.file_path === 'string' && value.tool_input.file_path;
+  const patched = !written && ['Bash', 'apply_patch', 'exec_command'].includes(value.tool_name)
+    ? parsePatchFiles(value.tool_input?.command)
+    : [];
   return {
     host: 'default',
-    root: value.cwd,
-    files,
-    result: '',
+    roots,
+    files: written ? [value.tool_input.file_path] : patched,
+    // Patch headers may be relative to a directory the payload does not name.
+    patch: patched.length > 0,
     stop: !('tool_name' in value) && !('tool_input' in value),
   };
 }

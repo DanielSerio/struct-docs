@@ -12,6 +12,7 @@ import {
   stalePointerRule,
 } from './house-style-rules.js';
 import type { HouseStyleDocument } from './house-style-rules.js';
+import { inHouseStyleScope } from './house-style-scope.js';
 
 function lintSpecContent(content: string, relPath = 'docs/specs/example.md') {
   const normalized = relPath.replaceAll('\\', '/').replace(/^docs\//, '');
@@ -152,6 +153,17 @@ describe('house-style rules — scope and purity', () => {
     assert.deepEqual(lintSpecContent(violating, 'roadmaps/v1/independent-project-gate.md'), []);
     assert.deepEqual(lintSpecContent(violating, 'docs/notes/scratch.md'), []);
     assert.deepEqual(lintSpecContent(violating, 'docs/specs/nested/auth.md'), []);
+  });
+
+  it('reads every spelling of a directory, including the docs root, the same way', () => {
+    for (const dir of ['docs', 'docs/', '.', '']) {
+      assert.equal(inHouseStyleScope('README.md', [dir]), true, dir);
+      assert.equal(inHouseStyleScope('docs/README.md', [dir]), true, dir);
+      assert.equal(inHouseStyleScope('specs/auth.md', [dir]), false, dir);
+    }
+    assert.equal(inHouseStyleScope('docs/specs/auth.md', ['specs']), true);
+    assert.equal(inHouseStyleScope('specs/auth.md', ['./docs/specs/']), true);
+    assert.equal(inHouseStyleScope('specs/auth.md', ['../specs']), false);
   });
 
   it('keeps each rule pure without filesystem or Commander imports', () => {

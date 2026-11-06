@@ -31,7 +31,7 @@ function writeClaudeRegistry(home: string, content: string) {
   writeFileSync(registry, content);
 }
 
-test('shipped discoverPlugin tries STRUCT_DOCS_ROOT, Claude registry, Claude skill, Codex cache and Antigravity in order', async () => {
+test('shipped discoverPlugin tries STRUCT_DOCS_ROOT, Claude registry, Claude skill, Codex cache and Antigravity workspace then user installs in order', async () => {
   const { discoverPlugin: shippedDiscover } = await import(emittedDiscoveryUrl) as {
     discoverPlugin: typeof discoverPlugin;
   };
@@ -41,7 +41,10 @@ test('shipped discoverPlugin tries STRUCT_DOCS_ROOT, Claude registry, Claude ski
       const claudeRegRoot = createBundle(join(home, 'from-claude-registry'));
       const claudeSkillRoot = createBundle(join(home, '.claude', 'skills', 'struct-docs'));
       const codexRoot = createBundle(join(home, '.codex', 'plugins', 'cache', 'local', 'struct-docs', '0.1.0'));
+      const project = join(home, 'project');
+      const workspaceRoot = createBundle(join(project, '.agents', 'plugins', 'struct-docs'));
       const agyRoot = createBundle(join(home, '.gemini', 'config', 'plugins', 'struct-docs'));
+      createBundle(join(home, '.antigravity', 'plugins', 'struct-docs'));
       writeClaudeRegistry(home, JSON.stringify({
         version: 2,
         plugins: {
@@ -63,11 +66,16 @@ test('shipped discoverPlugin tries STRUCT_DOCS_ROOT, Claude registry, Claude ski
       rmSync(claudeSkillRoot, { recursive: true, force: true });
       assert.equal(lookup({ home, env: {} }), codexRoot);
 
-      // 5. Antigravity plugin dir wins when Codex cache is removed.
+      // 5. The project's Antigravity workspace install wins when Codex cache is removed.
       rmSync(codexRoot, { recursive: true, force: true });
-      assert.equal(lookup({ home, env: {} }), agyRoot);
+      assert.equal(lookup({ home, env: {}, project }), workspaceRoot);
 
-      // 6. Returns undefined when no candidate remains.
+      // 6. The user-level Antigravity install comes next, or first when no project is named.
+      assert.equal(lookup({ home, env: {} }), agyRoot);
+      rmSync(workspaceRoot, { recursive: true, force: true });
+      assert.equal(lookup({ home, env: {}, project }), agyRoot);
+
+      // 7. Returns undefined when no candidate remains; ~/.antigravity is not an install location.
       rmSync(agyRoot, { recursive: true, force: true });
       assert.equal(lookup({ home, env: {} }), undefined);
     });
@@ -91,6 +99,22 @@ test('invalid candidates fall through and missing or malformed registries return
     }));
     const validFallback = createBundle(join(home, '.gemini', 'config', 'plugins', 'struct-docs'));
     assert.equal(discoverPlugin({ home, env: { STRUCT_DOCS_ROOT: emptyEnvDir } }), validFallback);
+  });
+});
+
+test('only the documented registry and cache layouts are read', async () => {
+  await withTempHome((home) => {
+    // A flat registry with no `plugins` key, and a single entry instead of a list, are not Claude's layout.
+    const flat = createBundle(join(home, 'flat'));
+    writeClaudeRegistry(home, JSON.stringify({ 'struct-docs@local': [{ installPath: flat }] }));
+    assert.equal(discoverPlugin({ home, env: {} }), undefined);
+    writeClaudeRegistry(home, JSON.stringify({ plugins: { 'struct-docs@local': { installPath: flat } } }));
+    assert.equal(discoverPlugin({ home, env: {} }), undefined);
+    // A marketplace that happens to be named struct-docs is not the plugin directory.
+    createBundle(join(home, '.codex', 'plugins', 'cache', 'struct-docs', 'other-plugin'));
+    assert.equal(discoverPlugin({ home, env: {} }), undefined);
+    const real = createBundle(join(home, '.codex', 'plugins', 'cache', 'struct-docs', 'struct-docs', '1.0.0'));
+    assert.equal(discoverPlugin({ home, env: {} }), real);
   });
 });
 

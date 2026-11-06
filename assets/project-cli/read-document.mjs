@@ -1,6 +1,19 @@
 // scripts/read/project-document.ts
-import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync } from "node:fs";
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { existsSync, lstatSync as lstatSync2, readdirSync, readFileSync, realpathSync } from "node:fs";
+import { relative as relative2, resolve as resolve2, sep as sep3 } from "node:path";
+
+// scripts/policy/docs-dir.ts
+function docsRelativeDir(dir) {
+  const clean = dir.replaceAll("\\", "/");
+  if (/^(?:[a-z]:)?\//i.test(clean)) return void 0;
+  const parts = clean.split("/").filter((part) => part !== "" && part !== ".");
+  if (parts[0] === "docs") parts.shift();
+  return parts.includes("..") ? void 0 : parts.join("/");
+}
+
+// scripts/read/containment.ts
+import { isAbsolute, sep } from "node:path";
+var isWithin = (local) => !isAbsolute(local) && local !== ".." && !local.startsWith(`..${sep}`);
 
 // scripts/read/frontmatter-quoted.ts
 var backslash = "\\";
@@ -141,6 +154,24 @@ function parseFrontmatter(text) {
   return failure(lines.length, "unterminated frontmatter");
 }
 
+// scripts/read/checked-file.ts
+import { lstatSync } from "node:fs";
+import { relative, resolve, sep as sep2 } from "node:path";
+function checkedDocsPath(root, file) {
+  const absolute = resolve(root, file.replaceAll("\\", "/"));
+  let directory;
+  try {
+    directory = lstatSync(absolute).isDirectory();
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") throw new Error(`no such file: ${file}`);
+    throw error;
+  }
+  if (directory) throw new Error("check requires a file, not a directory");
+  const local = relative(resolve(root, "docs"), absolute);
+  if (!isWithin(local)) return void 0;
+  return local.split(sep2).join("/");
+}
+
 // scripts/read/project-document.ts
 function parseProjectDocument(path, source) {
   return {
@@ -161,19 +192,16 @@ function frontmatterFindings(document) {
   }];
 }
 function readDocsSource(root, path) {
-  const docs = resolve(root, "docs");
+  const docs = resolve2(root, "docs");
   const clean = path.replaceAll("\\", "/").replace(/^\.\//, "");
   const rel = clean.startsWith("docs/") ? clean.slice(5) : clean;
-  const absolute = resolve(docs, rel);
-  const local = relative(docs, absolute);
-  if (isAbsolute(local) || local === ".." || local.startsWith(`..${sep}`)) {
-    throw new Error("document path must stay inside docs/");
-  }
-  const normalized = local.split(sep).join("/");
+  const absolute = resolve2(docs, rel);
+  const local = relative2(docs, absolute);
+  if (!isWithin(local)) throw new Error("document path must stay inside docs/");
+  const normalized = local.split(sep3).join("/");
   try {
-    if (lstatSync(docs).isSymbolicLink()) throw new Error("docs/ must not be a symbolic link");
-    const realLocal = relative(realpathSync(docs), realpathSync(absolute));
-    if (isAbsolute(realLocal) || realLocal === ".." || realLocal.startsWith(`..${sep}`)) {
+    if (lstatSync2(docs).isSymbolicLink()) throw new Error("docs/ must not be a symbolic link");
+    if (!isWithin(relative2(realpathSync(docs), realpathSync(absolute)))) {
       throw new Error("document path must stay inside docs/");
     }
     return { path: normalized, source: readFileSync(absolute, "utf8") };
@@ -187,13 +215,13 @@ function readProjectDocument(root, path) {
   return raw ? parseProjectDocument(raw.path, raw.source) : void 0;
 }
 function readProjectDocuments(root, dirs = ["docs/specs"]) {
-  const docs = resolve(root, "docs");
+  const docs = resolve2(root, "docs");
   if (!existsSync(docs)) return [];
   const documents = [];
   for (const dir of dirs) {
-    const clean = dir.replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/+$/, "");
-    const relDir = clean.startsWith("docs/") ? clean.slice(5) : clean;
-    const absDir = resolve(docs, relDir);
+    const relDir = docsRelativeDir(dir);
+    if (relDir === void 0) throw new Error(`docs directory must stay inside docs/: ${dir}`);
+    const absDir = resolve2(docs, relDir);
     if (!existsSync(absDir)) continue;
     const files = readdirSync(absDir, { withFileTypes: true }).filter((entry) => entry.isFile() && /\.md$/i.test(entry.name)).map((entry) => entry.name).sort();
     for (const name of files) {
@@ -204,6 +232,7 @@ function readProjectDocuments(root, dirs = ["docs/specs"]) {
   return documents;
 }
 export {
+  checkedDocsPath,
   frontmatterFindings,
   parseProjectDocument,
   readDocsSource,

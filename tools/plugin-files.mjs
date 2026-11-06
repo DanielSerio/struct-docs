@@ -1,9 +1,10 @@
 import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { clearPending } from '../hooks/pending.mjs';
+import { isWithin } from '../hooks/project-root.mjs';
 
 export const repository = fileURLToPath(new URL('../', import.meta.url));
 export const shippedPluginPaths = [
@@ -32,7 +33,7 @@ export function copiedPlugin(run) {
 export function pluginFile(root, path, errors) {
   const target = resolve(root, path);
   const local = relative(resolve(root), target);
-  if (!local || isAbsolute(local) || local === '..' || local.startsWith(`..${sep}`)) {
+  if (!local || !isWithin(local)) {
     errors.push(`plugin reference must stay inside the install: ${path}`);
     return undefined;
   }

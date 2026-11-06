@@ -1,14 +1,15 @@
 {
-  "artifactDirectoryPath": "/users/example/.gemini/antigravity-cli/brain/5616c166-0dac-4fff-8c4c-6e8fbdd2fc5e",
-  "conversationId": "5616c166-0dac-4fff-8c4c-6e8fbdd2fc5e",
+  "artifactDirectoryPath": "/users/example/.gemini/antigravity-cli/brain/3288b08f-0bae-4686-9a84-93a765f36fbe",
+  "conversationId": "3288b08f-0bae-4686-9a84-93a765f36fbe",
   "error": "",
   "executionNum": 0,
   "fullyIdle": true,
-  "lastUserInput": "Use the write_file tool to write '# Example' to docs/example.md and tell me the exact tool result.",
+  "lastUserInput": "Use the write_file tool to write '# Example' to \\workspace\\second\\docs\\example.md, then use write_file to write '# Local' to docs/local.md in the current workspace, and tell me each exact tool result.",
   "modelName": "gemini-4-argon-medium",
   "terminationReason": "NO_TOOL_CALL",
-  "transcriptPath": "/users/example/.gemini/antigravity-cli/brain/5616c166-0dac-4fff-8c4c-6e8fbdd2fc5e/.system_generated/logs/transcript_full.jsonl",
+  "transcriptPath": "/users/example/.gemini/antigravity-cli/brain/3288b08f-0bae-4686-9a84-93a765f36fbe/.system_generated/logs/transcript_full.jsonl",
   "workspacePaths": [
-    "/workspace/project"
+    "/workspace/project",
+    "/workspace/second"
   ]
 }

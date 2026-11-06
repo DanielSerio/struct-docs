@@ -45,13 +45,14 @@ function invoke(root, options = {}) {
   return result.stdout;
 }
 
-function replayStopFixture(name, root) {
+function replayStopFixture(name, root, second = '/workspace/second') {
   return readFileSync(resolve('tests/fixtures/hooks', name), 'utf8')
+    .replaceAll('/workspace/second', second.replaceAll('\\', '/'))
     .replaceAll('/workspace/project', root.replaceAll('\\', '/'));
 }
 
 function copiedHook(root, cli) {
-  for (const name of ['stop-repair.mjs', 'lib.mjs', 'pending.mjs']) {
+  for (const name of ['stop-repair.mjs', 'lib.mjs', 'limits.mjs', 'project.mjs', 'project-root.mjs', 'pending.mjs']) {
     const target = join(root, 'plugin/hooks', name);
     mkdirSync(dirname(target), { recursive: true });
     copyFileSync(resolve('hooks', name), target);
@@ -118,6 +119,19 @@ test('PostToolUse and Stop agree on the repository sentinel and consume it after
   });
 });
 
+test('a host directory below the project still repairs the adopted project above it', () => {
+  fixture((root) => {
+    const cwd = join(root, 'src');
+    mkdirSync(cwd, { recursive: true });
+    invoke(root, { entry: resolve('hooks/post-write-check.mjs'), raw: JSON.stringify({
+      cwd, tool_name: 'Write', tool_input: { file_path: '../docs/roadmaps/v1/index.md' } }) });
+    assert.equal(isPending(root), true);
+    invoke(root, { raw: JSON.stringify({ cwd }) });
+    assert.equal(isPending(root), false);
+    assert.match(readFileSync(join(root, 'docs/roadmaps/v1/index.md'), 'utf8'), /^status: in-progress$/m);
+  });
+});
+
 test('pending work never adopts a project with absent, old, partial or ambiguous markers', () => {
   for (const readme of ['', '<!-- manage-docs:index -->\n<!-- /manage-docs:index -->',
     '<!-- struct-docs:index -->', `inline ${markers}`, `${markers}\n${markers}`]) {
@@ -167,9 +181,10 @@ syncBuiltinESMExports();`);
     const probe = join(root, 'attempt');
     invoke(root, { flags: ['--import', pathToFileURL(preload).href], env: { STOP_TEST_PROBE: probe } });
     assert.equal(isPending(root), true);
-    assert.deepEqual(JSON.parse(readFileSync(probe, 'utf8')), {
-      args: [resolve('bin/docs-lint.mjs'), 'repair'], timeout: 14000,
-    });
+    const attempt = JSON.parse(readFileSync(probe, 'utf8'));
+    assert.deepEqual(attempt.args, [resolve('bin/docs-lint.mjs'), 'repair']);
+    // What is left of the shared 14-second deadline, under the host's 15-second limit.
+    assert.ok(attempt.timeout > 12000 && attempt.timeout <= 14000, String(attempt.timeout));
   });
 });
 
@@ -194,13 +209,25 @@ test('each host Stop fixture repairs from the right project root and prints the 
   });
 });
 
+test('Antigravity Stop repairs every pending workspace root, not just the first', () => {
+  fixture((first) => fixture((second) => {
+    markPending(second);
+    const stdout = invoke(first, { raw: replayStopFixture('antigravity-stop.json', first, second), expectedStdout: null });
+    assert.deepEqual(JSON.parse(stdout), { decision: 'stop' });
+    assert.equal(isPending(second), false);
+    assert.match(readFileSync(join(second, 'docs/roadmaps/v1/index.md'), 'utf8'), /^status: in-progress$/m);
+    assert.equal(readFileSync(join(first, 'docs/roadmaps/v1/index.md'), 'utf8'), rootSource, 'an unarmed root is left alone');
+  }));
+});
+
 test('unrecognized Stop payloads exit 0 with the host empty output or nothing', () => {
   fixture((root) => {
     markPending(root);
+    const base = JSON.parse(replayStopFixture('antigravity-stop.json', root));
     for (const payload of [
-      { workspacePaths: [], terminationReason: 'NO_TOOL_CALL' },
-      { workspacePaths: [root], toolCall: { name: 'write_file', args: { Path: 'docs/README.md' } } },
-      { conversationId: 'unknown-event' },
+      { ...base, workspacePaths: [] },
+      { ...base, toolCall: { name: 'write_file', args: { Path: 'docs/README.md' } } },
+      { ...base, workspacePaths: [''] },
     ]) {
       const stdout = invoke(root, { raw: JSON.stringify(payload), expectedStdout: null });
       assert.deepEqual(JSON.parse(stdout), {});
@@ -208,6 +235,7 @@ test('unrecognized Stop payloads exit 0 with the host empty output or nothing', 
     }
     for (const payload of [
       { unknown: true },
+      { conversationId: 'partial-antigravity' },
       { cwd: root, tool_name: 'Write', tool_input: { file_path: 'docs/README.md' } },
     ]) {
       assert.equal(invoke(root, { raw: JSON.stringify(payload) }), '');

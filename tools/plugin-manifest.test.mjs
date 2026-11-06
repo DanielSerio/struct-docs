@@ -110,6 +110,10 @@ test('both hook events and host matchers are required in every host registration
     assert.ok(validatePlugin(root).some((message) => message.includes('must match Write|Edit')));
   });
   copiedPlugin((root) => {
+    changeJson(root, 'hooks.json', (hooks) => { hooks['struct-docs'].PostToolUse[0].matcher = 'write_file'; });
+    assert.ok(validatePlugin(root).some((message) => message.includes('must match write_file|edit_file (antigravity)')));
+  });
+  copiedPlugin((root) => {
     changeManifest(root, (manifest) => {
       manifest.hooks.PostToolUse[0].matcher = 'Read';
       manifest.hooks.PostToolUse.push({ matcher: 'Write|Edit', hooks: [] }, null, { hooks: [null] });

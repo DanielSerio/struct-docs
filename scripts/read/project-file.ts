@@ -1,12 +1,13 @@
 import { lstatSync, readFileSync } from 'node:fs';
-import { isAbsolute, relative, resolve, sep } from 'node:path';
+import { relative, resolve, sep } from 'node:path';
+import { isWithin } from './containment.js';
 
 /** Refuse linked/non-directory parents before reading or creating project-owned files. */
 export function projectPath(root: string, path: string) {
   const base = resolve(root);
   const target = resolve(base, path);
   const local = relative(base, target);
-  if (isAbsolute(local) || local === '..' || local.startsWith(`..${sep}`)) throw new Error('project path escapes root');
+  if (!isWithin(local)) throw new Error('project path escapes root');
   const parts = local.split(sep);
   let current = base;
   for (const [index, part] of parts.entries()) {

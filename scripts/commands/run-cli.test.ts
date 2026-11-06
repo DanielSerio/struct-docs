@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { test } from 'node:test';
 import type { CommandOptions, CommandName } from './command-types.js';
 import { runCli } from './run-cli.js';
@@ -22,10 +22,11 @@ test('all registration modules adapt flags and file arguments into testable hand
   for (const [name, args, expected] of [
     ['init', ['--apply'], { apply: true }],
     ['audit', ['--fix', '--verbose'], { fix: true, verbose: true }],
-    ['check', ['docs/specs/a.md'], { file: 'docs/specs/a.md' }],
+    // File arguments arrive resolved from the working directory, here the injected root.
+    ['check', ['docs/specs/a.md'], { file: resolve('fixture-root', 'docs/specs/a.md') }],
     ['repair', [], {}],
     ['status', [], {}],
-    ['status', ['docs/roadmaps/v1/index.md'], { file: 'docs/roadmaps/v1/index.md' }],
+    ['status', ['docs/roadmaps/v1/index.md'], { file: resolve('fixture-root', 'docs/roadmaps/v1/index.md') }],
   ] as const) {
     const calls: CommandOptions[] = [];
     const io = capture();

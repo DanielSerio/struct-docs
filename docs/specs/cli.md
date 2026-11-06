@@ -12,11 +12,23 @@ Ship `docs-lint` for Node 22+ with Commander. The committed entry is
 `bin/docs-lint.mjs`, one esbuild bundle with no runtime package installation. Commands:
 
 - `init [--apply]`: survey, plan and apply safe initialization; no prose interpretation.
+  With `--apply`, `--project-cli <rules>` (and `--docs-dirs <dirs>`) writes the approved
+  project CLI and `--commit-gate <auto|pre-commit|check-script>` installs the approved gate
+  (`specs/project-cli`). Neither runs a package manager; init prints the install command.
 - `audit [--fix] [--verbose]`: full structural checks and optional derived repairs.
-- `check <file>`: single-file parse, naming and type-placement checks; no tree scans.
+- `check <file>`: single-file parse, naming and type-placement checks; no tree scans. A
+  missing file is a usage error (exit 2), so a typo never reads as clean; an existing file
+  outside `docs/` passes unchecked, so a list of changed files can be passed whole.
 - `repair`: derived repairs only, with no audit narration.
 - `status [file]`: read-only progress tree and next ready node for every roadmap, or for the
   descendants of one roadmap file. Distinguishes finished, gated (naming blockers) and cyclic.
+
+Commands work on the nearest adopted project at or above the working directory, searching no
+higher than the git root; with none, the working directory is the project. Adopted means the
+same as for the hooks (`specs/packaging`): one ordered struct-docs:index marker pair in
+`docs/README.md`. One source defines it, and the build emits it for the hooks. File arguments
+stay relative to the working directory. Why: a skill or agent that changed directory must not
+pass vacuously.
 
 Each command module exports `register(program)` and calls separately testable handlers.
 The entry only configures Commander, arguments, streams and exit status. Findings use

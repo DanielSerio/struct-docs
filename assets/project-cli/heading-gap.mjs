@@ -1,13 +1,19 @@
+// scripts/policy/docs-dir.ts
+function docsRelativeDir(dir) {
+  const clean = dir.replaceAll("\\", "/");
+  if (/^(?:[a-z]:)?\//i.test(clean)) return void 0;
+  const parts = clean.split("/").filter((part) => part !== "" && part !== ".");
+  if (parts[0] === "docs") parts.shift();
+  return parts.includes("..") ? void 0 : parts.join("/");
+}
+
 // scripts/check/house-style-scope.ts
 var DEFAULT_HOUSE_STYLE_DIRS = ["docs/specs"];
 function inHouseStyleScope(path, dirs = DEFAULT_HOUSE_STYLE_DIRS) {
-  const normalized = path.replaceAll("\\", "/").replace(/^\.\//, "");
-  if (!/\.md$/i.test(normalized) || !normalized.includes("/")) return false;
-  const parent = normalized.slice(0, normalized.lastIndexOf("/"));
-  return dirs.some((dir) => {
-    const clean = dir.replaceAll("\\", "/").replace(/\/+$/, "");
-    return parent === clean || clean.startsWith("docs/") && parent === clean.slice(5);
-  });
+  const normalized = path.replaceAll("\\", "/");
+  if (!/\.md$/i.test(normalized)) return false;
+  const parent = docsRelativeDir(normalized.slice(0, Math.max(normalized.lastIndexOf("/"), 0)));
+  return parent !== void 0 && dirs.some((dir) => docsRelativeDir(dir) === parent);
 }
 function bodyStartLine(document) {
   if (document.frontmatter.ok) return document.frontmatter.endLine;

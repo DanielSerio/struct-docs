@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { HOOK_TIMEOUTS } from '../hooks/limits.mjs';
 import { hookFiles, pluginFile } from './plugin-files.mjs';
 import { hostSkills, skillFiles } from './plugin-skills.mjs';
 
@@ -9,8 +10,11 @@ const hostManifestPaths = [
   ['codex', '.codex-plugin/plugin.json'],
   ['antigravity', '.antigravity-plugin/plugin.json'],
 ];
-const hookSpecs = [['PostToolUse', 'hooks/post-write-check.mjs', 5], ['Stop', 'hooks/stop-repair.mjs', 15]];
-const antigravityMatcher = 'write_file|edit_file|write_to_file|replace_file_content|multi_replace_file_content';
+const hookSpecs = [
+  ['PostToolUse', 'hooks/post-write-check.mjs', HOOK_TIMEOUTS.PostToolUse],
+  ['Stop', 'hooks/stop-repair.mjs', HOOK_TIMEOUTS.Stop],
+];
+const antigravityMatcher = 'write_file|edit_file';
 
 function readJsonObject(root, path, errors) {
   try {

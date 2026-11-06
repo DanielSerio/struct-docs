@@ -1,5 +1,6 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
+import { gitHooks, inProject } from './git-hooks.js';
 import { detectPackageManager } from './package-json.js';
 import type { PackageManager } from './package-json.js';
 
@@ -9,13 +10,15 @@ export type ApplyCommitGateOptions = {
   readonly mode?: CommitGateMode;
 };
 
+const KIT_CLI = 'tools/docs-cli/index.mjs';
+
 /** Return the package-manager command that invokes the project's docs-lint audit gate. */
 export function docsLintGateCommand(pm: PackageManager | null): string {
   if (pm === 'pnpm') return 'pnpm run docs-lint audit';
   if (pm === 'yarn') return 'yarn docs-lint audit';
   if (pm === 'bun') return 'bun run docs-lint audit';
   if (pm === 'npm') return 'npm run docs-lint -- audit';
-  return 'node tools/docs-cli/index.mjs audit';
+  return `node ${KIT_CLI} audit`;
 }
 
 function checkScriptCommand(pm: PackageManager): string {
@@ -23,74 +26,79 @@ function checkScriptCommand(pm: PackageManager): string {
   return `${pm} run check`;
 }
 
-function alreadyRunsDocsLint(text: string): boolean {
-  return /\bdocs-lint\b|tools\/docs-cli\/index\.mjs/.test(text);
+/** Any package-manager form that runs a script, such as `pnpm check` or `npm run check`. */
+function runsScript(text: string, name: string): boolean {
+  return new RegExp(`\\b(?:npm|pnpm|yarn|bun)\\s+(?:run\\s+)?${name}(?![\\w:-])`).test(text);
 }
 
-function appendCheckScript(rawPkg: string, gateCmd: string): { updated: string; hadCheck: boolean } {
-  const parsed = JSON.parse(rawPkg) as { scripts?: Record<string, string> };
-  const current = parsed.scripts?.check;
-  if (typeof current !== 'string') return { updated: rawPkg, hadCheck: false };
-  if (alreadyRunsDocsLint(current)) return { updated: rawPkg, hadCheck: true };
-  const nextCheck = `${current} && ${gateCmd}`;
+/**
+ * Only the generated CLI's own invocation counts as the gate. The word `docs-lint` alone does
+ * not: an older linter may share the name (SDLC-docs runs `pnpm agents docs-lint`).
+ */
+function runsGate(text: string, scriptIsKit: boolean): boolean {
+  return text.includes(KIT_CLI) || (scriptIsKit && runsScript(text, 'docs-lint'));
+}
+
+function appendCheckScript(rawPkg: string, current: string, gateCmd: string): string {
   const pattern = /("check"\s*:\s*)("(?:\\.|[^"\\])*")/;
-  const updated = rawPkg.replace(pattern, (_, prefix: string) => `${prefix}${JSON.stringify(nextCheck)}`);
-  return { updated, hadCheck: true };
+  return rawPkg.replace(pattern, (_, prefix: string) => `${prefix}${JSON.stringify(`${current} && ${gateCmd}`)}`);
 }
 
-function writeHookFile(hookPath: string, commandToEnsure: string, checkCmd?: string): boolean {
-  mkdirSync(dirname(hookPath), { recursive: true });
+function writeHookFile(hookPath: string, command: string, gated: (text: string) => boolean): boolean {
   if (!existsSync(hookPath)) {
-    const content = `#!/bin/sh\nset -e\n${commandToEnsure}\n`;
-    writeFileSync(hookPath, content, { mode: 0o755 });
+    mkdirSync(dirname(hookPath), { recursive: true });
+    writeFileSync(hookPath, `#!/bin/sh\nset -e\n${command}\n`, { mode: 0o755 });
     chmodSync(hookPath, 0o755);
     return true;
   }
   const existing = readFileSync(hookPath, 'utf8');
-  if (alreadyRunsDocsLint(existing)) return false;
-  if (checkCmd && existing.includes(checkCmd)) return false;
+  if (gated(existing)) return false;
   const eol = existing.includes('\r\n') ? '\r\n' : '\n';
-  const body = existing.replace(/(\r?\n)+$/, '');
-  const exitMatch = /^(.*?)(\r?\nexit\s+0\s*)$/s.exec(body);
-  const next = exitMatch
-    ? `${exitMatch[1]}${eol}${commandToEnsure}${exitMatch[2]}${eol}`
-    : `${body}${eol}${commandToEnsure}${eol}`;
-  writeFileSync(hookPath, next, { mode: 0o755 });
+  const lines = existing.replace(/(\r?\n)+$/, '').split(/\r?\n/);
+  // A trailing `exec` replaces the shell and a trailing `exit` ends it, so the gate goes first.
+  const at = /^\s*(?:exec\s|exit\b)/.test(lines.at(-1) ?? '') ? lines.length - 1 : lines.length;
+  lines.splice(at, 0, command);
+  writeFileSync(hookPath, `${lines.join(eol)}${eol}`, { mode: 0o755 });
   chmodSync(hookPath, 0o755);
   return true;
 }
 
-/** Wire the generated CLI into .git/hooks/pre-commit and/or package.json check script without double-running. */
+/** Wire the generated CLI into the pre-commit hook git actually runs and/or the check script, without double-running. */
 export function applyCommitGate(root: string, options: ApplyCommitGateOptions = {}) {
   if (options.approved === false) {
     return { written: [] as string[], packageManager: null, gateCommand: null, skipped: true };
   }
   const pkgPath = join(root, 'package.json');
-  const hasPkg = existsSync(pkgPath);
-  const rawPkg = hasPkg ? readFileSync(pkgPath, 'utf8') : undefined;
-  const pm: PackageManager | null = hasPkg ? detectPackageManager(root, rawPkg) : null;
-  const gateCommand = docsLintGateCommand(pm);
+  const rawPkg = existsSync(pkgPath) ? readFileSync(pkgPath, 'utf8') : undefined;
+  const scripts = rawPkg ? (JSON.parse(rawPkg) as { scripts?: Record<string, unknown> }).scripts ?? {} : {};
+  const pm: PackageManager | null = rawPkg ? detectPackageManager(root, rawPkg) : null;
+  // A `docs-lint` script the project already had for something else is never the gate.
+  const docsLint = scripts['docs-lint'];
+  const scriptIsKit = typeof docsLint === 'string' && docsLint.includes(KIT_CLI);
+  const gateCommand = docsLintGateCommand(scriptIsKit ? pm : null);
   const mode = options.mode ?? 'auto';
   const written: string[] = [];
-  const hookPath = join(root, '.git', 'hooks', 'pre-commit');
+  const hooks = gitHooks(root);
+  const hookPath = hooks ? join(hooks.dir, 'pre-commit') : undefined;
+  const label = (path: string) => relative(root, path).split(sep).join('/');
+  const check = scripts.check;
 
-  if (hasPkg && rawPkg && pm && (mode === 'check-script' || mode === 'auto')) {
-    const { updated, hadCheck } = appendCheckScript(rawPkg, gateCommand);
-    if (hadCheck) {
-      if (updated !== rawPkg) {
-        writeFileSync(pkgPath, updated);
-        written.push('package.json');
-      }
-      const checkCmd = checkScriptCommand(pm);
-      if (existsSync(join(root, '.git')) && writeHookFile(hookPath, checkCmd, checkCmd)) {
-        written.push('.git/hooks/pre-commit');
-      }
-      return { written, packageManager: pm, gateCommand, skipped: false };
+  if (rawPkg && pm && typeof check === 'string' && (mode === 'check-script' || mode === 'auto')) {
+    if (!runsGate(check, scriptIsKit)) {
+      writeFileSync(pkgPath, appendCheckScript(rawPkg, check, gateCommand));
+      written.push('package.json');
     }
+    // Outside a repository the extended check script is the whole gate.
+    const gated = (text: string) => runsGate(text, scriptIsKit) || runsScript(text, 'check');
+    if (hooks && hookPath && writeHookFile(hookPath, inProject(checkScriptCommand(pm), hooks.projectFromTop), gated)) {
+      written.push(label(hookPath));
+    }
+    return { written, packageManager: pm, gateCommand, skipped: false };
   }
 
-  if (writeHookFile(hookPath, gateCommand)) {
-    written.push('.git/hooks/pre-commit');
-  }
+  // Never create `.git/hooks` by hand: outside a repository it would be a hook git never runs.
+  if (!hooks || !hookPath) throw new Error('commit gate needs a git repository or a check script to extend');
+  const gated = (text: string) => runsGate(text, scriptIsKit);
+  if (writeHookFile(hookPath, inProject(gateCommand, hooks.projectFromTop), gated)) written.push(label(hookPath));
   return { written, packageManager: pm, gateCommand, skipped: false };
 }

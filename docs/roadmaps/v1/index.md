@@ -37,10 +37,5 @@ Deps: structural-cli, documentation-workflows, multi-host
 Breakout: ./independent-project-gate.md
 
 ### migrated-repository <!-- status: todo -->
-Intent: A copy of SDLC-docs demonstrates a safe, repeatable replacement of manage-docs.
-Acceptance:
-- [ ] An approved copy-only migration retains custom doctypes, ignore reasons, references and roadmap progress.
-- [ ] The migrated copy passes structural audit and a second repair produces no changes.
-- [ ] Reviews present or absent yield identical index content, and missing plugin leaves local rules active.
-- [ ] Rehearsal evidence records the migration diff and confirms both original repositories were unchanged.
 Deps: independent-project-gate
+Breakout: ./migrated-repository.md

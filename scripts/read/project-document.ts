@@ -1,8 +1,13 @@
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
-import { isAbsolute, relative, resolve, sep } from 'node:path';
+import { relative, resolve, sep } from 'node:path';
 import type { ParsedDocument } from '../policy/document.js';
+import { docsRelativeDir } from '../policy/docs-dir.js';
 import type { Finding } from '../policy/findings.js';
+import { isWithin } from './containment.js';
 import { parseFrontmatter } from './frontmatter.js';
+
+// The copied project CLI reaches every read helper through this one emitted module.
+export { checkedDocsPath } from './checked-file.js';
 
 export type ProjectDocument = Pick<ParsedDocument, 'path' | 'source' | 'lines' | 'frontmatter'>;
 
@@ -35,14 +40,11 @@ export function readDocsSource(root: string, path: string): { path: string; sour
   const rel = clean.startsWith('docs/') ? clean.slice(5) : clean;
   const absolute = resolve(docs, rel);
   const local = relative(docs, absolute);
-  if (isAbsolute(local) || local === '..' || local.startsWith(`..${sep}`)) {
-    throw new Error('document path must stay inside docs/');
-  }
+  if (!isWithin(local)) throw new Error('document path must stay inside docs/');
   const normalized = local.split(sep).join('/');
   try {
     if (lstatSync(docs).isSymbolicLink()) throw new Error('docs/ must not be a symbolic link');
-    const realLocal = relative(realpathSync(docs), realpathSync(absolute));
-    if (isAbsolute(realLocal) || realLocal === '..' || realLocal.startsWith(`..${sep}`)) {
+    if (!isWithin(relative(realpathSync(docs), realpathSync(absolute)))) {
       throw new Error('document path must stay inside docs/');
     }
     return { path: normalized, source: readFileSync(absolute, 'utf8') };
@@ -67,8 +69,8 @@ export function readProjectDocuments(
   if (!existsSync(docs)) return [];
   const documents: ProjectDocument[] = [];
   for (const dir of dirs) {
-    const clean = dir.replaceAll('\\', '/').replace(/^\.\//, '').replace(/\/+$/, '');
-    const relDir = clean.startsWith('docs/') ? clean.slice(5) : clean;
+    const relDir = docsRelativeDir(dir);
+    if (relDir === undefined) throw new Error(`docs directory must stay inside docs/: ${dir}`);
     const absDir = resolve(docs, relDir);
     if (!existsSync(absDir)) continue;
     const files = readdirSync(absDir, { withFileTypes: true })

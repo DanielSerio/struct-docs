@@ -1,0 +1,21 @@
+{
+  "artifactDirectoryPath": "/users/example/.gemini/antigravity-cli/brain/a1e73f93-5fae-49b0-83ca-13708e3b91b5",
+  "conversationId": "a1e73f93-5fae-49b0-83ca-13708e3b91b5",
+  "error": "",
+  "lastUserInput": "Do these 4 file operations using your file tools (not shell commands): 1) create a new file docs/specs/created.md with '# Created', 2) edit part of docs/specs/existing.md to replace 'Line one.' with 'Line 1 updated.', 3) make two edits to docs/specs/existing.md (replace 'Line 1 updated.' with 'First.' and 'Line three.' with 'Third.'), and 4) overwrite docs/specs/created.md completely with '# Overwritten'. Tell me the exact tool names and argument keys you used.",
+  "modelName": "gemini-4-argon-medium",
+  "stepIdx": 5,
+  "toolCall": {
+    "args": {
+      "Path": "\\workspace\\project\\docs\\specs\\existing.md",
+      "Replacement": "Line 1 updated.",
+      "Target": "Line one."
+    },
+    "name": "edit_file"
+  },
+  "transcriptPath": "/users/example/.gemini/antigravity-cli/brain/a1e73f93-5fae-49b0-83ca-13708e3b91b5/.system_generated/logs/transcript_full.jsonl",
+  "workspacePaths": [
+    "/workspace/project",
+    "/workspace/second"
+  ]
+}

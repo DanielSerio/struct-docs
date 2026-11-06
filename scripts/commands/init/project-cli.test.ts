@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { test } from 'node:test';
+import { installCommander } from '../../../tests/utils/install-commander.js';
 import { applyProjectCli } from './project-cli.js';
 
 const repoRoot = resolve('.');
@@ -34,17 +35,11 @@ test('applying project CLI with package.json writes selected rules, uses project
     write(root, 'package.json', pkgBefore);
     write(root, 'pnpm-lock.yaml', 'lockfileVersion: 9.0\n');
 
-    const calls: { command: string; args: readonly string[]; cwd: string }[] = [];
-    const result = applyProjectCli(root, {
-      rules: ['line-length', 'heading-gap'],
-      runPackageManager: (command, args, cwd) => { calls.push({ command, args, cwd }); },
-    });
+    const result = applyProjectCli(root, { rules: ['line-length', 'heading-gap'] });
 
     assert.equal(result.packageManager, 'pnpm');
-    assert.equal(calls.length, 1);
-    assert.equal(calls[0]?.command, 'pnpm');
-    assert.deepEqual(calls[0]?.args.slice(0, 2), ['add', '-D']);
-    assert.match(calls[0]?.args[2] ?? '', /^commander@/);
+    assert.deepEqual(result.installCommand.slice(0, 3), ['pnpm', 'add', '-D']);
+    assert.match(result.installCommand[3] ?? '', /^commander@/);
 
     const pkgAfter = readFileSync(join(root, 'package.json'), 'utf8');
     assert.ok(pkgAfter.includes(rawScripts), 'unrelated scripts must be preserved byte-for-byte');
@@ -69,6 +64,7 @@ test('applying project CLI without root package.json writes private tools/docs-c
 
     assert.deepEqual(readdirSync(root).sort(), ['README.md', 'tools']);
     assert.equal(existsSync(join(root, 'package.json')), false);
+    assert.equal(existsSync(join(root, 'tools/docs-cli/node_modules')), false, 'Commander comes from the printed install');
     const privatePkg = JSON.parse(readFileSync(join(root, 'tools/docs-cli/package.json'), 'utf8')) as {
       private: boolean;
       type: string;
@@ -91,6 +87,7 @@ test('generated CLI forwards commands/flags to discovered bundle from project ro
       rules: ['line-length', 'heading-gap'],
       dirs: ['docs/specs', 'docs/guides'],
     });
+    installCommander(proj);
     const cliEntry = join(proj, 'tools/docs-cli/index.mjs');
     const envWithPlugin = {
       ...process.env,
@@ -141,6 +138,7 @@ test('missing plugin warns and exits 0 when local rules pass, local rule errors 
     const proj = join(root, 'project');
     mkdirSync(proj, { recursive: true });
     applyProjectCli(proj, { rules: ['stale-pointer', 'file-size'] });
+    installCommander(proj);
     const cliEntry = join(proj, 'tools/docs-cli/index.mjs');
 
     const envNoPlugin = {

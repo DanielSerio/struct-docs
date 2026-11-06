@@ -20,7 +20,9 @@ it with `node tools/docs-cli/index.mjs`. Integrate into an existing CLI where ap
 preserving unrelated commands and scripts.
 
 Which docs directories each rule covers is a project-owned list in the generated CLI. It does
-not read `.struct-docs.yml`, so the copy needs no YAML parser.
+not read `.struct-docs.yml`, so the copy needs no YAML parser. Entries name directories inside
+`docs/`, repo-relative (`docs/specs`) or docs-relative (`specs`); `docs` names the docs root.
+The reader and the rule scope share one reading of an entry, and init refuses one outside `docs/`.
 
 Forward structural commands and flags to the plugin bundle via process.execPath with an
 argument array and project-root cwd. Do not interpolate shell commands or duplicate core
@@ -37,7 +39,9 @@ catches them later.
 
 One isolated lookup function tries STRUCT_DOCS_ROOT, then installPath from
 ~/.claude/plugins/installed_plugins.json for struct-docs, then ~/.claude/skills/struct-docs,
-then the Codex and Antigravity plugin install locations, in that fixed order. Validate that
+then the Codex cache, then the Antigravity installs (the project's `.agents/plugins/struct-docs`
+before the user-level one), in that fixed order. `claude --plugin-dir` records no install, so
+those users set STRUCT_DOCS_ROOT. Validate that
 a candidate contains bin/docs-lint.mjs; fall through when invalid. Handle a
 missing or malformed registry without crashing. Registry layout is an implementation detail
 isolated behind this function and fixture tests; never persist version-specific install paths.
@@ -70,6 +74,12 @@ that work, while house style stays the project's to edit without a plugin update
 ## Local commit gate
 
 Offer a pre-commit hook or addition to the existing check script. Preserve existing hook
-behavior, use the project's package manager, and avoid double-running a gate. A missing
+behavior, use the project's package manager, and avoid double-running a gate. Write the hook
+where git runs it (`git rev-parse --git-path hooks`, so `core.hooksPath`, husky and worktrees
+are honored), entering a nested project's directory first; outside a repository, only a check
+script can carry the gate. Only the generated CLI's own invocation counts as an existing gate,
+never the bare word `docs-lint`, which an older linter may share; a hook already running the
+check script in any package-manager form gets no second run, and the gate goes before a
+trailing `exec` or `exit`. A missing
 plugin allows commit with an installation warning; local rule errors still block it.
 Warnings alone exit zero. Output format and exit semantics match the shared CLI skeleton.

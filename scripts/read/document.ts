@@ -1,5 +1,6 @@
-import { isAbsolute, relative, resolve, sep } from 'node:path';
+import { relative, resolve, sep } from 'node:path';
 import { classify } from '../policy/classify.js';
+import { isWithin } from './containment.js';
 import type { Classification } from '../policy/classify.js';
 import type { Config } from '../policy/config-types.js';
 import type { DocumentContext, ParsedDocument } from '../policy/document.js';
@@ -25,9 +26,7 @@ export function readDocument(root: string, path: string, config: Config): Parsed
   const docs = resolve(root, 'docs');
   const absolute = resolve(docs, path.replaceAll('\\', '/'));
   const local = relative(docs, absolute);
-  if (isAbsolute(local) || local === '..' || local.startsWith(`..${sep}`)) {
-    throw new Error('document path must stay inside docs/');
-  }
+  if (!isWithin(local)) throw new Error('document path must stay inside docs/');
   const normalized = local.split(sep).join('/');
   const classification = classify(normalized, config);
   if (classification.cls !== 'live' && classification.cls !== 'roadmap') return undefined;

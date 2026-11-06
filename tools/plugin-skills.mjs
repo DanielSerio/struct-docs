@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { parse } from 'yaml';
+import { isWithin } from '../hooks/project-root.mjs';
 import { pluginFile } from './plugin-files.mjs';
 
 const required = ['audit', 'execute-roadmap', 'fold', 'init', 'review', 'roadmap'];
@@ -56,7 +57,7 @@ export function hostSkills(root, manifests, names, errors) {
     } else if (typeof manifest.skills === 'string') {
       const dir = resolve(root, manifest.skills);
       const local = relative(resolve(root), dir);
-      if (!local || isAbsolute(local) || local === '..' || local.startsWith(`..${sep}`)) {
+      if (!local || !isWithin(local)) {
         errors.push(`plugin reference must stay inside the install: ${manifest.skills}`);
         entries = [];
       } else {

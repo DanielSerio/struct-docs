@@ -6,6 +6,9 @@ export type CommandOptions = {
   root: string;
   file?: string;
   apply?: boolean;
+  projectCli?: string;
+  docsDirs?: string;
+  commitGate?: string;
   fix?: boolean;
   verbose?: boolean;
 };
@@ -17,6 +20,8 @@ export type CliProgram = Command & {
 };
 export type CliOptions = {
   root?: string;
+  /** Where relative file arguments start; defaults to the root. */
+  cwd?: string;
   handlers?: Partial<CommandHandlers>;
   writeOut?: (text: string) => void;
   writeErr?: (text: string) => void;

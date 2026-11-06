@@ -6,6 +6,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { test } from 'node:test';
 import { applyCommitGate } from './commit-gate.js';
 import { applyProjectCli } from './project-cli.js';
+import { installCommander } from '../../../tests/utils/install-commander.js';
 
 const repoRoot = resolve('.');
 
@@ -46,6 +47,7 @@ test('existing pre-commit hook and existing check script keep prior behavior and
     chmodSync(hookPath, 0o755);
 
     applyProjectCli(root, { rules: ['heading-gap'] });
+    installCommander(root);
     const cliPath = join(root, 'tools/docs-cli/index.mjs');
     const cliLog = join(root, 'cli-runs.log').replaceAll('\\', '/');
     writeFileSync(cliPath, `${readFileSync(cliPath, 'utf8')}\nimport { appendFileSync } from 'node:fs';\nappendFileSync('${cliLog}', 'run\\n');\n`);
@@ -77,6 +79,7 @@ test('existing pre-commit hook and existing check script keep prior behavior and
     }, null, 2) + '\n');
 
     applyProjectCli(root, { rules: ['heading-gap'] });
+    installCommander(root);
     const cliPath = join(root, 'tools/docs-cli/index.mjs');
     const cliLog = join(root, 'cli-runs.log').replaceAll('\\', '/');
     writeFileSync(cliPath, `${readFileSync(cliPath, 'utf8')}\nimport { appendFileSync } from 'node:fs';\nappendFileSync('${cliLog}', 'run\\n');\n`);
@@ -101,6 +104,7 @@ test('commit with local rule error is blocked, while commit with only missing pl
     const emptyHome = join(root, 'empty-home');
     mkdirSync(emptyHome, { recursive: true });
     applyProjectCli(root, { rules: ['stale-pointer', 'file-size'] });
+    installCommander(root);
     applyCommitGate(root);
 
     const envNoPlugin = {
@@ -133,6 +137,58 @@ test('commit with local rule error is blocked, while commit with only missing pl
     assert.equal(warningOnlyCommit.status, 0, warningOnlyCommit.stderr + warningOnlyCommit.stdout);
     assert.match(warningOnlyCommit.stdout + warningOnlyCommit.stderr, /1 warning \(--verbose to list\)/);
   });
+});
+
+test('the gate goes where git runs hooks: core.hooksPath, husky and a shared worktree hooks directory', async () => {
+  await withTempRepo((root) => {
+    applyProjectCli(root, { rules: ['heading-gap'] });
+    git(root, ['config', 'core.hooksPath', '.githooks']);
+    assert.deepEqual(applyCommitGate(root).written, ['.githooks/pre-commit']);
+    assert.match(readFileSync(join(root, '.githooks/pre-commit'), 'utf8'), /^node tools\/docs-cli\/index\.mjs audit$/m);
+    assert.equal(existsSync(join(root, '.git/hooks/pre-commit')), false);
+  });
+
+  await withTempRepo((root) => {
+    applyProjectCli(root, { rules: ['heading-gap'] });
+    git(root, ['config', 'core.hooksPath', '.husky/_']);
+    assert.deepEqual(applyCommitGate(root).written, ['.husky/pre-commit']);
+  });
+
+  await withTempRepo((root) => {
+    write(root, 'README.md', '# Main\n');
+    git(root, ['add', 'README.md']);
+    git(root, ['commit', '-m', 'Main']);
+    const worktree = `${root}-worktree`;
+    git(root, ['worktree', 'add', worktree]);
+    try {
+      applyProjectCli(worktree, { rules: ['heading-gap'] });
+      applyCommitGate(worktree);
+      // Linked worktrees share the main repository's hooks; `.git` there is a file.
+      assert.match(readFileSync(join(root, '.git/hooks/pre-commit'), 'utf8'), /docs-cli\/index\.mjs audit/);
+    } finally {
+      git(root, ['worktree', 'remove', '--force', worktree]);
+    }
+  });
+});
+
+test('a nested project enters its own directory, and outside a repository nothing is created', async () => {
+  await withTempRepo((root) => {
+    const project = join(root, 'packages', 'docs');
+    mkdirSync(project, { recursive: true });
+    applyProjectCli(project, { rules: ['heading-gap'] });
+    applyCommitGate(project);
+    assert.match(readFileSync(join(root, '.git/hooks/pre-commit'), 'utf8'),
+      /^\(cd 'packages\/docs' && node tools\/docs-cli\/index\.mjs audit\)$/m);
+  });
+
+  const outside = mkdtempSync(join(tmpdir(), 'struct-docs-commit-gate-'));
+  try {
+    applyProjectCli(outside, { rules: ['heading-gap'] });
+    assert.throws(() => applyCommitGate(outside), /needs a git repository/);
+    assert.equal(existsSync(join(outside, '.git')), false);
+  } finally {
+    rmSync(outside, { recursive: true, force: true });
+  }
 });
 
 test('skills/init/SKILL.md offers the gate after project CLI, uses project package manager and respects a decline', async () => {

@@ -1,7 +1,6 @@
-import { lstatSync } from 'node:fs';
-import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { classify } from '../../policy/classify.js';
 import { filingRule } from '../../check/document-filing.js';
+import { checkedDocsPath } from '../../read/checked-file.js';
 import { loadConfig } from '../../read/config.js';
 import { readDocument } from '../../read/document.js';
 import type { CommandOptions, CommandResult } from '../command-types.js';
@@ -11,16 +10,8 @@ export function run(options: CommandOptions): CommandResult {
   const { config, findings } = loadConfig(options.root);
   if (!config) return { findings };
   if (!options.file) throw new Error('check requires a file path');
-  const path = relative(resolve(options.root, 'docs'), resolve(options.root, options.file.replaceAll('\\', '/')));
-  if (isAbsolute(path) || path === '..' || path.startsWith(`..${sep}`)) return { findings: [] };
-  const normalized = path.split(sep).join('/');
-  try {
-    const file = lstatSync(resolve(options.root, 'docs', normalized));
-    if (file.isDirectory()) throw new Error('check requires a file, not a directory');
-  } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return { findings: [] };
-    throw error;
-  }
+  const normalized = checkedDocsPath(options.root, options.file);
+  if (normalized === undefined) return { findings: [] };
   const classification = classify(normalized, config);
   if (classification.cls === 'forbidden') return { findings: [{
     file: normalized, line: 1, rule: 'filing', severity: 'error', message: classification.reason,

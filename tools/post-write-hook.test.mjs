@@ -1,49 +1,16 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, join, relative, resolve } from 'node:path';
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { test } from 'node:test';
-import { pathToFileURL } from 'node:url';
 import { isPending, sentinelPath, clearPending } from '../hooks/pending.mjs';
+import { fixture, invoke, markers, source, write } from './post-write-fixture.mjs';
 
-const hook = resolve('hooks/post-write-check.mjs');
-const markers = '<!-- struct-docs:index -->\n\n<!-- /struct-docs:index -->\n';
-const source = (type = 'spec') => `---\ntitle: Example\ntype: ${type}\npurpose: Describe something.\n---\n`;
-
-function write(root, path, content) {
-  const target = join(root, path);
-  mkdirSync(dirname(target), { recursive: true });
-  writeFileSync(target, content);
-  return target;
-}
-
-function fixture(run, readme = markers) {
-  const root = mkdtempSync(join(tmpdir(), 'struct-docs-post-write-'));
-  write(root, 'docs/README.md', readme);
-  try {
-    run(root);
-  } finally {
-    clearPending(root);
-    assert.ok(relative(tmpdir(), root).startsWith('struct-docs-post-write-'));
-    rmSync(root, { recursive: true, force: true });
-  }
-}
-
-function invoke(root, file, options = {}) {
-  const payload = { cwd: root, tool_name: 'Write', tool_input: { file_path: file } };
-  const result = spawnSync(process.execPath, [...(options.flags ?? []), options.entry ?? hook], {
-    input: options.raw ?? JSON.stringify(payload), encoding: 'utf8',
-    env: { ...process.env, NODE_PATH: '', CLAUDE_PLUGIN_ROOT: 'not-the-plugin', ...options.env },
-  });
-  assert.ifError(result.error);
-  assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stderr, '');
-  return result.stdout;
-}
-
-function replayFixture(name, root, targetRelative = 'docs/example.md') {
+function replayFixture(name, root, targetRelative = 'docs/example.md', second = '/workspace/second') {
   const raw = readFileSync(resolve('tests/fixtures/hooks', name), 'utf8')
+    // Antigravity sends a Windows path as written, backslashes and all (JSON-escaped here).
+    // Any captured docs file in the project root becomes the file under test.
+    .replace(/\\\\workspace\\\\project\\\\docs\\\\[^"]*/g, () => JSON.stringify(join(root, targetRelative)).slice(1, -1))
+    .replaceAll('/workspace/second', second.replaceAll('\\', '/'))
     .replaceAll('/workspace/project/docs/example.md', join(root, targetRelative).replaceAll('\\', '/'))
     .replaceAll('docs/example.md', targetRelative)
     .replaceAll('/workspace/project', root.replaceAll('\\', '/'));
@@ -58,7 +25,7 @@ function snapshot(root) {
 }
 
 function copiedHook(root, cli) {
-  for (const name of ['post-write-check.mjs', 'lib.mjs', 'pending.mjs']) {
+  for (const name of ['post-write-check.mjs', 'lib.mjs', 'limits.mjs', 'project.mjs', 'project-root.mjs', 'pending.mjs']) {
     const target = join(root, 'plugin/hooks', name);
     mkdirSync(dirname(target), { recursive: true });
     copyFileSync(resolve('hooks', name), target);
@@ -124,6 +91,37 @@ test('all docs writes and only root config writes arm a path-keyed sentinel', ()
   });
 });
 
+test('the pending flag names one checkout however its path is spelled', () => {
+  fixture((root) => {
+    const link = `${root}-link`;
+    symlinkSync(root, link, 'junction');
+    try {
+      assert.equal(sentinelPath(link), sentinelPath(root));
+      if (process.platform === 'win32') assert.equal(sentinelPath(root.toUpperCase()), sentinelPath(root));
+      // A write reported through the link arms the flag that Stop finds from the real path.
+      write(root, 'docs/specs/linked.md', source());
+      invoke(link, join(link, 'docs/specs/linked.md'));
+      assert.equal(isPending(root), true);
+    } finally {
+      rmSync(link, { force: true });
+    }
+  });
+});
+
+test('a host directory below the project still checks and arms the adopted project', () => {
+  fixture((root) => {
+    const path = write(root, 'docs/specs/Bad_Name.md', source('review'));
+    const cwd = join(root, 'src');
+    mkdirSync(cwd, { recursive: true });
+    for (const file of [path, '../docs/specs/Bad_Name.md']) {
+      const raw = JSON.stringify({ cwd, tool_name: 'Write', tool_input: { file_path: file } });
+      assert.match(invoke(root, path, { raw }), /specs\/Bad_Name\.md:\d+ - .*kebab-case/);
+      assert.equal(isPending(root), true);
+      clearPending(root);
+    }
+  });
+});
+
 test('malformed payloads, missing files, non-files and unrelated tools are harmless', () => {
   fixture((root) => {
     const path = write(root, 'docs/specs/example.md', source('review'));
@@ -171,10 +169,12 @@ test('replaying each host PostToolUse fixture produces equivalent findings, sent
     assert.equal(isPending(root), true);
     clearPending(root);
 
-    const agyClean = invoke(root, cleanRel, { raw: replayFixture('antigravity-post-tool-use.json', root, cleanRel).raw });
-    assert.deepEqual(JSON.parse(agyClean), {});
-    assert.equal(isPending(root), true);
-    clearPending(root);
+    for (const fixtureName of ['antigravity-post-tool-use.json', 'antigravity-post-tool-use-edit.json']) {
+      const agyClean = invoke(root, cleanRel, { raw: replayFixture(fixtureName, root, cleanRel).raw });
+      assert.deepEqual(JSON.parse(agyClean), {});
+      assert.equal(isPending(root), true);
+      clearPending(root);
+    }
 
     const badRel = 'docs/specs/Bad_Name.md';
     write(root, badRel, source('review'));
@@ -189,70 +189,46 @@ test('replaying each host PostToolUse fixture produces equivalent findings, sent
     assert.equal(isPending(root), true);
     clearPending(root);
 
-    const agyFixture = replayFixture('antigravity-post-tool-use.json', root, badRel);
-    const agyBad = JSON.parse(invoke(root, badRel, { raw: agyFixture.raw }));
-    assert.equal(agyBad.overwriteResult, `${agyFixture.payload.result}\n${claudeBad.trimEnd()}`);
+    for (const fixtureName of ['antigravity-post-tool-use.json', 'antigravity-post-tool-use-edit.json']) {
+      const agyFixture = replayFixture(fixtureName, root, badRel);
+      assert.equal('result' in agyFixture.payload, false);
+      const agyBad = JSON.parse(invoke(root, badRel, { raw: agyFixture.raw }));
+      assert.deepEqual(agyBad, { overwriteResult: claudeBad.trimEnd() });
+      assert.equal(isPending(root), true);
+      clearPending(root);
+    }
+
+    // A later version that drops fields the hook never reads is still recognized.
+    const { conversationId, workspacePaths, toolCall } = replayFixture('antigravity-post-tool-use-edit.json', root, badRel).payload;
+    const minimal = JSON.stringify({ conversationId, workspacePaths, toolCall });
+    assert.deepEqual(JSON.parse(invoke(root, badRel, { raw: minimal })), { overwriteResult: claudeBad.trimEnd() });
     assert.equal(isPending(root), true);
   });
 });
 
-test('a multi-file Codex apply_patch checks each surviving docs file and arms the sentinel once', () => {
-  fixture((root) => {
-    write(root, 'docs/specs/Added_Bad.md', source('spec'));
-    write(root, 'docs/specs/Deleted_Bad.md', source('review'));
-    write(root, 'docs/specs/Moved_Bad.md', source('review'));
-    write(root, 'src/index.ts', 'export const x = 1;\n');
-    const countFile = join(root, 'sentinel-writes');
-    writeFileSync(countFile, '0');
-    const preload = write(root, 'count-sentinel.mjs', `import fs from 'node:fs';
-import {syncBuiltinESMExports} from 'node:module';
-const orig = fs.writeFileSync;
-fs.writeFileSync = (target, data, ...rest) => {
-  if (String(target) === process.env.SENTINEL_TARGET) {
-    const n = Number(fs.readFileSync(process.env.SENTINEL_COUNT, 'utf8')) + 1;
-    orig(process.env.SENTINEL_COUNT, String(n));
-  }
-  return orig(target, data, ...rest);
-};
-syncBuiltinESMExports();`);
-    const patch = [
-      'apply_patch <<\'PATCH\'',
-      '*** Begin Patch',
-      '*** Add File: docs/specs/Added_Bad.md',
-      '+# Added',
-      '*** Delete File: docs/specs/Deleted_Bad.md',
-      '-# Deleted',
-      '*** Update File: docs/specs/Old_Name.md',
-      '*** Move to: docs/specs/Moved_Bad.md',
-      '@@',
-      '+# Moved',
-      '*** Update File: src/index.ts',
-      '@@',
-      '+export const y = 2;',
-      '*** End Patch',
-      'PATCH',
-    ].join('\n');
-    const output = invoke(root, '', {
-      raw: JSON.stringify({ cwd: root, tool_name: 'Bash', tool_input: { command: patch } }),
-      flags: ['--import', pathToFileURL(preload).href],
-      env: { SENTINEL_TARGET: sentinelPath(root), SENTINEL_COUNT: countFile },
-    });
-    assert.match(output, /specs\/Added_Bad\.md:\d+ - .*kebab-case/);
-    assert.match(output, /specs\/Moved_Bad\.md:\d+ - .*kebab-case/);
-    assert.match(output, /specs\/Moved_Bad\.md:\d+ - .*type `review`/);
-    assert.doesNotMatch(output, /Deleted_Bad|Old_Name/);
-    assert.equal(isPending(root), true);
-    assert.equal(readFileSync(countFile, 'utf8'), '1');
-  });
+test('an Antigravity write in any workspace root checks and arms that root', () => {
+  fixture((first) => fixture((second) => {
+    const badRel = 'docs/specs/Bad_Name.md';
+    write(second, badRel, source('review'));
+    const { payload } = replayFixture('antigravity-post-tool-use.json', first, badRel, second);
+    for (const path of [join(second, badRel), badRel]) {
+      const raw = JSON.stringify({ ...payload, toolCall: { ...payload.toolCall, args: { ...payload.toolCall.args, Path: path } } });
+      assert.match(JSON.parse(invoke(first, badRel, { raw })).overwriteResult, /specs\/Bad_Name\.md:\d+ - .*kebab-case/);
+      assert.equal(isPending(second), true);
+      assert.equal(isPending(first), false);
+      clearPending(second);
+    }
+  }));
 });
 
 test('unrecognized PostToolUse payloads exit 0 with the host empty output or nothing', () => {
   fixture((root) => {
     write(root, 'docs/specs/Bad_Name.md', source('review'));
+    const { payload: base } = replayFixture('antigravity-post-tool-use.json', root);
     for (const payload of [
-      { workspacePaths: [root], toolCall: { name: 'run_command', args: { CommandLine: 'npm test' } } },
-      { workspacePaths: [], toolCall: { name: 'write_file', args: { Path: 'docs/specs/Bad_Name.md' } } },
-      { conversationId: 'unknown-event' },
+      { ...base, toolCall: { name: 'run_command', args: { CommandLine: 'npm test' } } },
+      { ...base, workspacePaths: [] },
+      { ...base, toolCall: undefined },
     ]) {
       const output = invoke(root, '', { raw: JSON.stringify(payload) });
       assert.deepEqual(JSON.parse(output), {});
@@ -260,6 +236,7 @@ test('unrecognized PostToolUse payloads exit 0 with the host empty output or not
     }
     for (const payload of [
       { unknown: true },
+      { conversationId: 'partial-antigravity' },
       { cwd: root, tool_name: 'Bash', tool_input: { command: 'echo hi' } },
     ]) {
       assert.equal(invoke(root, '', { raw: JSON.stringify(payload) }), '');

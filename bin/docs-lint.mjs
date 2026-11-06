@@ -7328,10 +7328,10 @@ var require_resolve_block_map = __commonJS({
       let offset = bm.offset;
       let commentEnd = null;
       for (const collItem of bm.items) {
-        const { start, key, sep: sep7, value: value2 } = collItem;
+        const { start, key, sep: sep10, value: value2 } = collItem;
         const keyProps = resolveProps.resolveProps(start, {
           indicator: "explicit-key-ind",
-          next: key ?? sep7?.[0],
+          next: key ?? sep10?.[0],
           offset,
           onError,
           parentIndent: bm.indent,
@@ -7345,7 +7345,7 @@ var require_resolve_block_map = __commonJS({
             else if ("indent" in key && key.indent !== bm.indent)
               onError(offset, "BAD_INDENT", startColMsg);
           }
-          if (!keyProps.anchor && !keyProps.tag && !sep7) {
+          if (!keyProps.anchor && !keyProps.tag && !sep10) {
             commentEnd = keyProps.end;
             if (keyProps.comment) {
               if (map.comment)
@@ -7369,7 +7369,7 @@ var require_resolve_block_map = __commonJS({
         ctx.atKey = false;
         if (utilMapIncludes.mapIncludes(ctx, map.items, keyNode))
           onError(keyStart, "DUPLICATE_KEY", "Map keys must be unique");
-        const valueProps = resolveProps.resolveProps(sep7 ?? [], {
+        const valueProps = resolveProps.resolveProps(sep10 ?? [], {
           indicator: "map-value-ind",
           next: value2,
           offset: keyNode.range[2],
@@ -7385,7 +7385,7 @@ var require_resolve_block_map = __commonJS({
             if (ctx.options.strict && keyProps.start < valueProps.found.offset - 1024)
               onError(keyNode.range, "KEY_OVER_1024_CHARS", "The : indicator must be at most 1024 chars after the start of an implicit block mapping key");
           }
-          const valueNode = value2 ? composeNode(ctx, value2, valueProps, onError) : composeEmptyNode(ctx, offset, sep7, null, valueProps, onError);
+          const valueNode = value2 ? composeNode(ctx, value2, valueProps, onError) : composeEmptyNode(ctx, offset, sep10, null, valueProps, onError);
           if (ctx.schema.compat)
             utilFlowIndentCheck.flowIndentCheck(bm.indent, value2, onError);
           offset = valueNode.range[2];
@@ -7476,7 +7476,7 @@ var require_resolve_end = __commonJS({
       let comment = "";
       if (end) {
         let hasSpace = false;
-        let sep7 = "";
+        let sep10 = "";
         for (const token of end) {
           const { source, type } = token;
           switch (type) {
@@ -7490,13 +7490,13 @@ var require_resolve_end = __commonJS({
               if (!comment)
                 comment = cb;
               else
-                comment += sep7 + cb;
-              sep7 = "";
+                comment += sep10 + cb;
+              sep10 = "";
               break;
             }
             case "newline":
               if (comment)
-                sep7 += source;
+                sep10 += source;
               hasSpace = true;
               break;
             default:
@@ -7539,18 +7539,18 @@ var require_resolve_flow_collection = __commonJS({
       let offset = fc.offset + fc.start.source.length;
       for (let i = 0; i < fc.items.length; ++i) {
         const collItem = fc.items[i];
-        const { start, key, sep: sep7, value: value2 } = collItem;
+        const { start, key, sep: sep10, value: value2 } = collItem;
         const props = resolveProps.resolveProps(start, {
           flow: fcName,
           indicator: "explicit-key-ind",
-          next: key ?? sep7?.[0],
+          next: key ?? sep10?.[0],
           offset,
           onError,
           parentIndent: fc.indent,
           startOnNewline: false
         });
         if (!props.found) {
-          if (!props.anchor && !props.tag && !sep7 && !value2) {
+          if (!props.anchor && !props.tag && !sep10 && !value2) {
             if (i === 0 && props.comma)
               onError(props.comma, "UNEXPECTED_TOKEN", `Unexpected , in ${fcName}`);
             else if (i < fc.items.length - 1)
@@ -7604,8 +7604,8 @@ var require_resolve_flow_collection = __commonJS({
             }
           }
         }
-        if (!isMap2 && !sep7 && !props.found) {
-          const valueNode = value2 ? composeNode(ctx, value2, props, onError) : composeEmptyNode(ctx, props.end, sep7, null, props, onError);
+        if (!isMap2 && !sep10 && !props.found) {
+          const valueNode = value2 ? composeNode(ctx, value2, props, onError) : composeEmptyNode(ctx, props.end, sep10, null, props, onError);
           coll.items.push(valueNode);
           offset = valueNode.range[2];
           if (isBlock(value2))
@@ -7617,7 +7617,7 @@ var require_resolve_flow_collection = __commonJS({
           if (isBlock(key))
             onError(keyNode.range, "BLOCK_IN_FLOW", blockMsg);
           ctx.atKey = false;
-          const valueProps = resolveProps.resolveProps(sep7 ?? [], {
+          const valueProps = resolveProps.resolveProps(sep10 ?? [], {
             flow: fcName,
             indicator: "map-value-ind",
             next: value2,
@@ -7628,8 +7628,8 @@ var require_resolve_flow_collection = __commonJS({
           });
           if (valueProps.found) {
             if (!isMap2 && !props.found && ctx.options.strict) {
-              if (sep7)
-                for (const st of sep7) {
+              if (sep10)
+                for (const st of sep10) {
                   if (st === valueProps.found)
                     break;
                   if (st.type === "newline") {
@@ -7646,7 +7646,7 @@ var require_resolve_flow_collection = __commonJS({
             else
               onError(valueProps.start, "MISSING_CHAR", `Missing , or : between ${fcName} items`);
           }
-          const valueNode = value2 ? composeNode(ctx, value2, valueProps, onError) : valueProps.found ? composeEmptyNode(ctx, valueProps.end, sep7, null, valueProps, onError) : null;
+          const valueNode = value2 ? composeNode(ctx, value2, valueProps, onError) : valueProps.found ? composeEmptyNode(ctx, valueProps.end, sep10, null, valueProps, onError) : null;
           if (valueNode) {
             if (isBlock(value2))
               onError(valueNode.range, "BLOCK_IN_FLOW", blockMsg);
@@ -7826,7 +7826,7 @@ var require_resolve_block_scalar = __commonJS({
           chompStart = i + 1;
       }
       let value2 = "";
-      let sep7 = "";
+      let sep10 = "";
       let prevMoreIndented = false;
       for (let i = 0; i < contentStart; ++i)
         value2 += lines[i][0].slice(trimIndent) + "\n";
@@ -7843,24 +7843,24 @@ var require_resolve_block_scalar = __commonJS({
           indent = "";
         }
         if (type === Scalar.Scalar.BLOCK_LITERAL) {
-          value2 += sep7 + indent.slice(trimIndent) + content;
-          sep7 = "\n";
+          value2 += sep10 + indent.slice(trimIndent) + content;
+          sep10 = "\n";
         } else if (indent.length > trimIndent || content[0] === "	") {
-          if (sep7 === " ")
-            sep7 = "\n";
-          else if (!prevMoreIndented && sep7 === "\n")
-            sep7 = "\n\n";
-          value2 += sep7 + indent.slice(trimIndent) + content;
-          sep7 = "\n";
+          if (sep10 === " ")
+            sep10 = "\n";
+          else if (!prevMoreIndented && sep10 === "\n")
+            sep10 = "\n\n";
+          value2 += sep10 + indent.slice(trimIndent) + content;
+          sep10 = "\n";
           prevMoreIndented = true;
         } else if (content === "") {
-          if (sep7 === "\n")
+          if (sep10 === "\n")
             value2 += "\n";
           else
-            sep7 = "\n";
+            sep10 = "\n";
         } else {
-          value2 += sep7 + content;
-          sep7 = " ";
+          value2 += sep10 + content;
+          sep10 = " ";
           prevMoreIndented = false;
         }
       }
@@ -8043,25 +8043,25 @@ var require_resolve_flow_scalar = __commonJS({
         trimBoth = /^[ \t]+|[ \t]+$/g;
       }
       let res = match[1].replace(trimEnd, "");
-      let sep7 = " ";
+      let sep10 = " ";
       let pos = line2.lastIndex;
       while (match = line2.exec(source)) {
         const lm = match[1].replace(trimBoth, "");
         if (lm === "") {
-          if (sep7 === "\n")
-            res += sep7;
+          if (sep10 === "\n")
+            res += sep10;
           else
-            sep7 = "\n";
+            sep10 = "\n";
         } else {
-          res += sep7 + lm;
-          sep7 = " ";
+          res += sep10 + lm;
+          sep10 = " ";
         }
         pos = line2.lastIndex;
       }
       const last = /[ \t]*(.*)/sy;
       last.lastIndex = pos;
       match = last.exec(source);
-      return res + sep7 + (match?.[1] ?? "");
+      return res + sep10 + (match?.[1] ?? "");
     }
     function doubleQuotedValue(source, onError) {
       let res = "";
@@ -8871,14 +8871,14 @@ var require_cst_stringify = __commonJS({
         }
       }
     }
-    function stringifyItem({ start, key, sep: sep7, value: value2 }) {
+    function stringifyItem({ start, key, sep: sep10, value: value2 }) {
       let res = "";
       for (const st of start)
         res += st.source;
       if (key)
         res += stringifyToken(key);
-      if (sep7)
-        for (const st of sep7)
+      if (sep10)
+        for (const st of sep10)
           res += st.source;
       if (value2)
         res += stringifyToken(value2);
@@ -9679,15 +9679,15 @@ var require_parser = __commonJS({
     var node_process = __require("process");
     var cst = require_cst();
     var lexer = require_lexer();
-    function includesToken(list, type) {
-      for (let i = 0; i < list.length; ++i)
-        if (list[i].type === type)
+    function includesToken(list2, type) {
+      for (let i = 0; i < list2.length; ++i)
+        if (list2[i].type === type)
           return true;
       return false;
     }
-    function findNonEmptyIndex(list) {
-      for (let i = 0; i < list.length; ++i) {
-        switch (list[i].type) {
+    function findNonEmptyIndex(list2) {
+      for (let i = 0; i < list2.length; ++i) {
+        switch (list2[i].type) {
           case "space":
           case "comment":
           case "newline":
@@ -10045,18 +10045,18 @@ var require_parser = __commonJS({
         if (this.type === "map-value-ind") {
           const prev = getPrevProps(this.peek(2));
           const start = getFirstKeyStartProps(prev);
-          let sep7;
+          let sep10;
           if (scalar2.end) {
-            sep7 = scalar2.end;
-            sep7.push(this.sourceToken);
+            sep10 = scalar2.end;
+            sep10.push(this.sourceToken);
             delete scalar2.end;
           } else
-            sep7 = [this.sourceToken];
+            sep10 = [this.sourceToken];
           const map = {
             type: "block-map",
             offset: scalar2.offset,
             indent: scalar2.indent,
-            items: [{ start, key: scalar2, sep: sep7 }]
+            items: [{ start, key: scalar2, sep: sep10 }]
           };
           this.onKeyLine = true;
           this.stack[this.stack.length - 1] = map;
@@ -10209,15 +10209,15 @@ var require_parser = __commonJS({
                 } else if (isFlowToken(it.key) && !includesToken(it.sep, "newline")) {
                   const start2 = getFirstKeyStartProps(it.start);
                   const key = it.key;
-                  const sep7 = it.sep;
-                  sep7.push(this.sourceToken);
+                  const sep10 = it.sep;
+                  sep10.push(this.sourceToken);
                   delete it.key;
                   delete it.sep;
                   this.stack.push({
                     type: "block-map",
                     offset: this.offset,
                     indent: this.indent,
-                    items: [{ start: start2, key, sep: sep7 }]
+                    items: [{ start: start2, key, sep: sep10 }]
                   });
                 } else if (start.length > 0) {
                   it.sep = it.sep.concat(start, this.sourceToken);
@@ -10411,13 +10411,13 @@ var require_parser = __commonJS({
             const prev = getPrevProps(parent);
             const start = getFirstKeyStartProps(prev);
             fixFlowSeqItems(fc);
-            const sep7 = fc.end.splice(1, fc.end.length);
-            sep7.push(this.sourceToken);
+            const sep10 = fc.end.splice(1, fc.end.length);
+            sep10.push(this.sourceToken);
             const map = {
               type: "block-map",
               offset: fc.offset,
               indent: fc.indent,
-              items: [{ start, key: fc, sep: sep7 }]
+              items: [{ start, key: fc, sep: sep10 }]
             };
             this.onKeyLine = true;
             this.stack[this.stack.length - 1] = map;
@@ -10712,6 +10712,9 @@ var {
   Help
 } = import_index.default;
 
+// scripts/commands/command-shell.ts
+import { resolve } from "node:path";
+
 // scripts/render/report.ts
 var display = (value2) => value2.replaceAll("\r", "\\r").replaceAll("\n", "\\n");
 var line = (finding) => `${display(finding.file)}:${finding.line} - ${display(finding.message)}`;
@@ -10752,7 +10755,7 @@ function register2(program2) {
 
 // scripts/commands/init.ts
 function register3(program2) {
-  program2.command("init").description("Survey documentation, applying only when requested").option("--apply", "Apply a safe initialization plan").action(async (options) => {
+  program2.command("init").description("Survey documentation, applying only when requested").option("--apply", "Apply a safe initialization plan").option("--project-cli <rules>", "With --apply, write tools/docs-cli/ with these comma-separated house-style rules").option("--docs-dirs <dirs>", "Comma-separated directories the project CLI rules cover (default docs/specs)").addOption(new Option("--commit-gate <mode>", "With --apply, run the project CLI on every commit").choices(["auto", "pre-commit", "check-script"])).action(async (options) => {
     await program2.execute("init", options);
   });
 }
@@ -10799,9 +10802,12 @@ function createCommandShell(options) {
   const writeOut = options.writeOut ?? ((text2) => process.stdout.write(text2));
   const writeErr = options.writeErr ?? ((text2) => process.stderr.write(text2));
   let exitCode = 0;
+  const root = options.root ?? process.cwd();
+  const cwd = options.cwd ?? root;
   const program2 = Object.assign(new Command(), {
     async execute(name, flags = {}) {
-      const result = await options.handlers[name]({ ...flags, root: options.root ?? process.cwd() });
+      const file = flags.file === void 0 ? {} : { file: resolve(cwd, flags.file.replaceAll("\\", "/")) };
+      const result = await options.handlers[name]({ ...flags, ...file, root });
       if (result.stdout) writeOut(result.stdout);
       const report = formatReport(result.findings, flags);
       if (report) writeOut(report);
@@ -11201,11 +11207,11 @@ function loadConfig(repoRoot) {
 
 // scripts/read/init-survey.ts
 import { existsSync as existsSync3 } from "node:fs";
-import { resolve as resolve7 } from "node:path";
+import { resolve as resolve9 } from "node:path";
 
 // scripts/read/tree.ts
 import { readFileSync as readFileSync3 } from "node:fs";
-import { resolve as resolve4 } from "node:path";
+import { resolve as resolve6 } from "node:path";
 
 // scripts/policy/classify.ts
 var excluded = { cls: "ungoverned", excluded: true };
@@ -11213,8 +11219,8 @@ var unrouted = { cls: "ungoverned" };
 var osFiles = /* @__PURE__ */ new Set([".ds_store", "thumbs.db", "desktop.ini"]);
 var normalize = (path) => path.replaceAll("\\", "/").replace(/^(\.\/)+/, "").replace(/^\/+/, "");
 var isUnroutedResult = (result) => result.cls === "ungoverned" && !result.excluded;
-function classify(relative7, config, ignores = compileIgnores(config.ignore)) {
-  const path = normalize(relative7);
+function classify(relative9, config, ignores = compileIgnores(config.ignore)) {
+  const path = normalize(relative9);
   const segments = path.split("/");
   const [directory = "", ...rest] = segments;
   if (osFiles.has((segments.at(-1) ?? "").toLowerCase())) return excluded;
@@ -11239,19 +11245,32 @@ function classify(relative7, config, ignores = compileIgnores(config.ignore)) {
 }
 function createClassifier(config) {
   const ignores = compileIgnores(config.ignore);
-  const classifyPath = (relative7) => classify(relative7, config, ignores);
+  const classifyPath = (relative9) => classify(relative9, config, ignores);
   return {
     classify: classifyPath,
-    isUnrouted: (relative7) => isUnroutedResult(classifyPath(relative7))
+    isUnrouted: (relative9) => isUnroutedResult(classifyPath(relative9))
   };
 }
 
 // scripts/read/document.ts
-import { isAbsolute as isAbsolute2, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
+import { relative as relative3, resolve as resolve4, sep as sep4 } from "node:path";
+
+// scripts/read/containment.ts
+import { isAbsolute, sep } from "node:path";
+var isWithin = (local) => !isAbsolute(local) && local !== ".." && !local.startsWith(`..${sep}`);
 
 // scripts/read/project-document.ts
-import { existsSync, lstatSync, readdirSync, readFileSync as readFileSync2, realpathSync } from "node:fs";
-import { isAbsolute, relative, resolve, sep } from "node:path";
+import { existsSync, lstatSync as lstatSync2, readdirSync, readFileSync as readFileSync2, realpathSync } from "node:fs";
+import { relative as relative2, resolve as resolve3, sep as sep3 } from "node:path";
+
+// scripts/policy/docs-dir.ts
+function docsRelativeDir(dir) {
+  const clean = dir.replaceAll("\\", "/");
+  if (/^(?:[a-z]:)?\//i.test(clean)) return void 0;
+  const parts = clean.split("/").filter((part) => part !== "" && part !== ".");
+  if (parts[0] === "docs") parts.shift();
+  return parts.includes("..") ? void 0 : parts.join("/");
+}
 
 // scripts/read/frontmatter-quoted.ts
 var backslash = "\\";
@@ -11392,6 +11411,24 @@ function parseFrontmatter(text2) {
   return failure(lines.length, "unterminated frontmatter");
 }
 
+// scripts/read/checked-file.ts
+import { lstatSync } from "node:fs";
+import { relative, resolve as resolve2, sep as sep2 } from "node:path";
+function checkedDocsPath(root, file) {
+  const absolute = resolve2(root, file.replaceAll("\\", "/"));
+  let directory;
+  try {
+    directory = lstatSync(absolute).isDirectory();
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") throw new Error(`no such file: ${file}`);
+    throw error;
+  }
+  if (directory) throw new Error("check requires a file, not a directory");
+  const local = relative(resolve2(root, "docs"), absolute);
+  if (!isWithin(local)) return void 0;
+  return local.split(sep2).join("/");
+}
+
 // scripts/read/project-document.ts
 function parseProjectDocument(path, source) {
   return {
@@ -11402,19 +11439,16 @@ function parseProjectDocument(path, source) {
   };
 }
 function readDocsSource(root, path) {
-  const docs = resolve(root, "docs");
+  const docs = resolve3(root, "docs");
   const clean = path.replaceAll("\\", "/").replace(/^\.\//, "");
   const rel = clean.startsWith("docs/") ? clean.slice(5) : clean;
-  const absolute = resolve(docs, rel);
-  const local = relative(docs, absolute);
-  if (isAbsolute(local) || local === ".." || local.startsWith(`..${sep}`)) {
-    throw new Error("document path must stay inside docs/");
-  }
-  const normalized = local.split(sep).join("/");
+  const absolute = resolve3(docs, rel);
+  const local = relative2(docs, absolute);
+  if (!isWithin(local)) throw new Error("document path must stay inside docs/");
+  const normalized = local.split(sep3).join("/");
   try {
-    if (lstatSync(docs).isSymbolicLink()) throw new Error("docs/ must not be a symbolic link");
-    const realLocal = relative(realpathSync(docs), realpathSync(absolute));
-    if (isAbsolute(realLocal) || realLocal === ".." || realLocal.startsWith(`..${sep}`)) {
+    if (lstatSync2(docs).isSymbolicLink()) throw new Error("docs/ must not be a symbolic link");
+    if (!isWithin(relative2(realpathSync(docs), realpathSync(absolute)))) {
       throw new Error("document path must stay inside docs/");
     }
     return { path: normalized, source: readFileSync2(absolute, "utf8") };
@@ -11459,20 +11493,20 @@ function parseBody(text2, bodyStart = 0) {
   const nodes = [];
   const findings = [];
   let node;
-  let list;
+  let list2;
   for (const [index, raw] of lines.entries()) {
     const line2 = raw.trimEnd();
     const number = bodyStart + index + 1;
     if (!line2.trim()) continue;
     if (line2.startsWith("### ")) {
       node = roadmapHeading(line2, number, findings);
-      list = void 0;
+      list2 = void 0;
       if (node) nodes.push(node);
       continue;
     }
     if (line2.startsWith("## ")) {
       node = void 0;
-      list = void 0;
+      list2 = void 0;
       continue;
     }
     if (!node) continue;
@@ -11483,7 +11517,7 @@ function parseBody(text2, bodyStart = 0) {
       const start = line2.indexOf(":") + 1 + line2.slice(line2.indexOf(":") + 1).length - value2.length;
       const name = key === "Acceptance" || key === "Notes" || key === "Deps" ? key.toLowerCase() : Object.hasOwn(scalarFields, key) ? scalarFields[key] : void 0;
       if (name) node.locations[name] = { line: number, start, end: start + value2.length };
-      list = (key === "Acceptance" || key === "Notes") && !value2 ? key : void 0;
+      list2 = (key === "Acceptance" || key === "Notes") && !value2 ? key : void 0;
       if (Object.hasOwn(scalarFields, key)) node[scalarFields[key]] = value2;
       else if (key === "Deps") node.deps = value2.split(",").map((dep) => dep.trim()).filter(Boolean);
       else if (key !== "Acceptance" && key !== "Notes") findings.push({
@@ -11493,8 +11527,8 @@ function parseBody(text2, bodyStart = 0) {
       continue;
     }
     const entry = line2.match(item);
-    if (!entry || !list) continue;
-    if (list === "Acceptance") node.acceptance.push({ done: /[xX]/.test(entry[1] ?? ""), text: entry[2] ?? "", line: number });
+    if (!entry || !list2) continue;
+    if (list2 === "Acceptance") node.acceptance.push({ done: /[xX]/.test(entry[1] ?? ""), text: entry[2] ?? "", line: number });
     else node.notes.push(entry[2] ?? "");
   }
   return { nodes, findings };
@@ -11512,13 +11546,11 @@ function parseDocument2(path, source, classification, context) {
   };
 }
 function readDocument(root, path, config) {
-  const docs = resolve2(root, "docs");
-  const absolute = resolve2(docs, path.replaceAll("\\", "/"));
-  const local = relative2(docs, absolute);
-  if (isAbsolute2(local) || local === ".." || local.startsWith(`..${sep2}`)) {
-    throw new Error("document path must stay inside docs/");
-  }
-  const normalized = local.split(sep2).join("/");
+  const docs = resolve4(root, "docs");
+  const absolute = resolve4(docs, path.replaceAll("\\", "/"));
+  const local = relative3(docs, absolute);
+  if (!isWithin(local)) throw new Error("document path must stay inside docs/");
+  const normalized = local.split(sep4).join("/");
   const classification = classify(normalized, config);
   if (classification.cls !== "live" && classification.cls !== "roadmap") return void 0;
   const raw = readDocsSource(root, normalized);
@@ -11526,18 +11558,18 @@ function readDocument(root, path, config) {
 }
 
 // scripts/read/files.ts
-import { existsSync as existsSync2, lstatSync as lstatSync2, readdirSync as readdirSync2 } from "node:fs";
-import { join as join2, relative as relative3, resolve as resolve3, sep as sep3 } from "node:path";
+import { existsSync as existsSync2, lstatSync as lstatSync3, readdirSync as readdirSync2 } from "node:fs";
+import { join as join2, relative as relative4, resolve as resolve5, sep as sep5 } from "node:path";
 function listDocFiles(root) {
-  const docs = resolve3(root, "docs");
+  const docs = resolve5(root, "docs");
   if (!existsSync2(docs)) return [];
-  if (lstatSync2(docs).isSymbolicLink()) throw new Error("docs/ must not be a symbolic link");
+  if (lstatSync3(docs).isSymbolicLink()) throw new Error("docs/ must not be a symbolic link");
   const files = [];
   const walk = (directory) => {
     for (const entry of readdirSync2(directory, { withFileTypes: true })) {
       const absolute = join2(directory, entry.name);
       if (entry.isDirectory()) walk(absolute);
-      else if (entry.isFile()) files.push(relative3(docs, absolute).split(sep3).join("/"));
+      else if (entry.isFile()) files.push(relative4(docs, absolute).split(sep5).join("/"));
     }
   };
   walk(docs);
@@ -11554,7 +11586,7 @@ function loadTree(root, config) {
   const context = { config, files: new Set(files) };
   for (const { path, classification } of entries) {
     if (classification.cls !== "live" && classification.cls !== "roadmap") continue;
-    const source = readFileSync3(resolve4(root, "docs", path), "utf8");
+    const source = readFileSync3(resolve6(root, "docs", path), "utf8");
     const document = parseDocument2(path, source, classification, context);
     documents.push(document);
     findings.push(...(document.roadmap?.findings ?? []).map(({ line: line2, message }) => ({
@@ -11572,16 +11604,16 @@ function loadTree(root, config) {
       message: `frontmatter: ${document.frontmatter.reason}`
     });
   }
-  return { root: resolve4(root), docsDir: resolve4(root, "docs"), config, files, entries, documents, findings };
+  return { root: resolve6(root), docsDir: resolve6(root, "docs"), config, files, entries, documents, findings };
 }
 
 // scripts/read/readme.ts
-import { lstatSync as lstatSync3, readFileSync as readFileSync4 } from "node:fs";
-import { resolve as resolve5 } from "node:path";
+import { lstatSync as lstatSync4, readFileSync as readFileSync4 } from "node:fs";
+import { resolve as resolve7 } from "node:path";
 function readReadme(root) {
   try {
-    const path = resolve5(root, "docs/README.md");
-    if (lstatSync3(path).isSymbolicLink()) throw new Error("docs/README.md must not be a symbolic link");
+    const path = resolve7(root, "docs/README.md");
+    if (lstatSync4(path).isSymbolicLink()) throw new Error("docs/README.md must not be a symbolic link");
     return readFileSync4(path, "utf8");
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") return null;
@@ -11590,19 +11622,19 @@ function readReadme(root) {
 }
 
 // scripts/read/project-file.ts
-import { lstatSync as lstatSync4, readFileSync as readFileSync5 } from "node:fs";
-import { isAbsolute as isAbsolute3, relative as relative4, resolve as resolve6, sep as sep4 } from "node:path";
+import { lstatSync as lstatSync5, readFileSync as readFileSync5 } from "node:fs";
+import { relative as relative5, resolve as resolve8, sep as sep6 } from "node:path";
 function projectPath(root, path) {
-  const base = resolve6(root);
-  const target = resolve6(base, path);
-  const local = relative4(base, target);
-  if (isAbsolute3(local) || local === ".." || local.startsWith(`..${sep4}`)) throw new Error("project path escapes root");
-  const parts = local.split(sep4);
+  const base = resolve8(root);
+  const target = resolve8(base, path);
+  const local = relative5(base, target);
+  if (!isWithin(local)) throw new Error("project path escapes root");
+  const parts = local.split(sep6);
   let current = base;
   for (const [index, part] of parts.entries()) {
-    current = resolve6(current, part);
+    current = resolve8(current, part);
     try {
-      const info = lstatSync4(current);
+      const info = lstatSync5(current);
       if (info.isSymbolicLink()) throw new Error(`${path} must not use symbolic links`);
       if (index < parts.length - 1 && !info.isDirectory()) throw new Error(`${path} parent must be a directory`);
     } catch (error) {
@@ -11615,7 +11647,7 @@ function projectPath(root, path) {
 function readProjectFile(root, path) {
   const target = projectPath(root, path);
   try {
-    if (!lstatSync4(target).isFile()) throw new Error(`${path} must be a regular file`);
+    if (!lstatSync5(target).isFile()) throw new Error(`${path} must be a regular file`);
     return readFileSync5(target);
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") return null;
@@ -11639,7 +11671,7 @@ function surveyInit(root, config) {
     if (tree.files.includes(file)) refuse(file, `legacy docs/${file} must be converted to .struct-docs.yml`);
   }
   for (const directory of ["roadmap", "archive", "scratch", "decisions"]) {
-    const present = directory === "roadmap" ? existsSync3(resolve7(root, "docs", directory)) : tree.files.some((path) => path.startsWith(`${directory}/`));
+    const present = directory === "roadmap" ? existsSync3(resolve9(root, "docs", directory)) : tree.files.some((path) => path.startsWith(`${directory}/`));
     if (present && !Object.hasOwn(config.doctypes, directory)) {
       refuse(`${directory}/`, `legacy docs/${directory}/ needs an approved migration or fold plan`);
     }
@@ -11844,12 +11876,12 @@ import { dirname as dirname3 } from "node:path";
 
 // scripts/read/review-template.ts
 import { existsSync as existsSync4, readFileSync as readFileSync6 } from "node:fs";
-import { dirname, resolve as resolve8 } from "node:path";
+import { dirname, resolve as resolve10 } from "node:path";
 import { fileURLToPath } from "node:url";
 function readReviewTemplate(moduleUrl = import.meta.url) {
   let directory = dirname(fileURLToPath(moduleUrl));
   while (true) {
-    const file = resolve8(directory, "assets/code-review-v1.md");
+    const file = resolve10(directory, "assets/code-review-v1.md");
     if (existsSync4(file)) return readFileSync6(file);
     const parent = dirname(directory);
     if (parent === directory) throw new Error("Struct Docs review template asset is missing; reinstall the plugin");
@@ -11896,6 +11928,373 @@ function applyInit(survey, plan, templateAsset = readReviewTemplate) {
   return written;
 }
 
+// scripts/commands/init/integrations.ts
+import { existsSync as existsSync8 } from "node:fs";
+import { join as join6 } from "node:path";
+
+// scripts/commands/init/commit-gate.ts
+import { chmodSync, existsSync as existsSync6, mkdirSync as mkdirSync3, readFileSync as readFileSync7, writeFileSync as writeFileSync3 } from "node:fs";
+import { dirname as dirname5, join as join4, relative as relative7, sep as sep8 } from "node:path";
+
+// scripts/commands/init/git-hooks.ts
+import { spawnSync } from "node:child_process";
+import { realpathSync as realpathSync2 } from "node:fs";
+import { basename, dirname as dirname4, relative as relative6, resolve as resolve11, sep as sep7 } from "node:path";
+function git(root, args) {
+  const result = spawnSync("git", [...args], { cwd: root, encoding: "utf8" });
+  return result.error || result.status !== 0 ? void 0 : result.stdout.trim();
+}
+function gitHooks(root) {
+  const hooks = git(root, ["rev-parse", "--git-path", "hooks"]);
+  const top = git(root, ["rev-parse", "--show-toplevel"]);
+  if (!hooks || !top) return void 0;
+  const dir = resolve11(root, hooks);
+  const hookDir = basename(dir) === "_" && basename(dirname4(dir)) === ".husky" ? dirname4(dir) : dir;
+  const projectFromTop = relative6(realpathSync2.native(top), realpathSync2.native(root)).split(sep7).join("/");
+  return { dir: hookDir, projectFromTop };
+}
+function inProject(command, projectFromTop) {
+  if (!projectFromTop) return command;
+  return `(cd '${projectFromTop.replaceAll("'", "'\\''")}' && ${command})`;
+}
+
+// scripts/commands/init/package-json.ts
+import { existsSync as existsSync5 } from "node:fs";
+import { join as join3 } from "node:path";
+var COMMANDER_VERSION = "^14.0.3";
+var DOCS_LINT_SCRIPT = "node tools/docs-cli/index.mjs";
+function detectPackageManager(root, rawPackageJson) {
+  if (rawPackageJson) {
+    try {
+      const parsed = JSON.parse(rawPackageJson);
+      if (typeof parsed.packageManager === "string") {
+        const prefix = parsed.packageManager.split("@")[0]?.trim();
+        if (prefix === "pnpm" || prefix === "yarn" || prefix === "bun" || prefix === "npm") return prefix;
+      }
+    } catch {
+    }
+  }
+  if (existsSync5(join3(root, "pnpm-lock.yaml"))) return "pnpm";
+  if (existsSync5(join3(root, "yarn.lock"))) return "yarn";
+  if (existsSync5(join3(root, "bun.lockb")) || existsSync5(join3(root, "bun.lock"))) return "bun";
+  return "npm";
+}
+function commanderInstallArgs(pm) {
+  if (pm === "pnpm") return { command: "pnpm", args: ["add", "-D", `commander@${COMMANDER_VERSION}`] };
+  if (pm === "yarn") return { command: "yarn", args: ["add", "--dev", `commander@${COMMANDER_VERSION}`] };
+  if (pm === "bun") return { command: "bun", args: ["add", "--dev", `commander@${COMMANDER_VERSION}`] };
+  return { command: "npm", args: ["install", "--save-dev", `commander@${COMMANDER_VERSION}`] };
+}
+function findObjectEnd(source, openBraceIndex) {
+  let depth = 0;
+  let inString = false;
+  for (let index = openBraceIndex; index < source.length; index += 1) {
+    const ch = source[index];
+    if (inString) {
+      if (ch === "\\") index += 1;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{") depth += 1;
+    else if (ch === "}") {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
+}
+function upsertObjectProperty(source, section, key, value2) {
+  const eol = source.includes("\r\n") ? "\r\n" : "\n";
+  const sectionPattern = new RegExp(`"${section}"\\s*:\\s*\\{`);
+  const match = sectionPattern.exec(source);
+  if (match) {
+    const openBrace = match.index + match[0].length - 1;
+    const closeBrace = findObjectEnd(source, openBrace);
+    if (closeBrace === -1) return source;
+    const interior = source.slice(openBrace + 1, closeBrace);
+    if (new RegExp(`"${key}"\\s*:`).test(interior)) return source;
+    const trimmed = interior.trimEnd();
+    if (!trimmed) {
+      return `${source.slice(0, openBrace + 1)}${eol}    "${key}": ${JSON.stringify(value2)}${eol}  ${source.slice(closeBrace)}`;
+    }
+    const insertPos = openBrace + 1 + trimmed.length;
+    return `${source.slice(0, insertPos)},${eol}    "${key}": ${JSON.stringify(value2)}${source.slice(insertPos)}`;
+  }
+  const rootClose = source.lastIndexOf("}");
+  if (rootClose === -1) return source;
+  const before = source.slice(0, rootClose).trimEnd();
+  const needsComma = !before.endsWith("{");
+  const block = `${needsComma ? "," : ""}${eol}  "${section}": {${eol}    "${key}": ${JSON.stringify(value2)}${eol}  }${eol}`;
+  return `${before}${block}${source.slice(rootClose)}`;
+}
+function updateProjectPackageJson(source) {
+  const withScript = upsertObjectProperty(source, "scripts", "docs-lint", DOCS_LINT_SCRIPT);
+  const parsed = JSON.parse(withScript);
+  if (parsed.dependencies?.commander || parsed.devDependencies?.commander) return withScript;
+  return upsertObjectProperty(withScript, "devDependencies", "commander", COMMANDER_VERSION);
+}
+
+// scripts/commands/init/commit-gate.ts
+var KIT_CLI = "tools/docs-cli/index.mjs";
+function docsLintGateCommand(pm) {
+  if (pm === "pnpm") return "pnpm run docs-lint audit";
+  if (pm === "yarn") return "yarn docs-lint audit";
+  if (pm === "bun") return "bun run docs-lint audit";
+  if (pm === "npm") return "npm run docs-lint -- audit";
+  return `node ${KIT_CLI} audit`;
+}
+function checkScriptCommand(pm) {
+  if (pm === "yarn") return "yarn check";
+  return `${pm} run check`;
+}
+function runsScript(text2, name) {
+  return new RegExp(`\\b(?:npm|pnpm|yarn|bun)\\s+(?:run\\s+)?${name}(?![\\w:-])`).test(text2);
+}
+function runsGate(text2, scriptIsKit) {
+  return text2.includes(KIT_CLI) || scriptIsKit && runsScript(text2, "docs-lint");
+}
+function appendCheckScript(rawPkg, current, gateCmd) {
+  const pattern = /("check"\s*:\s*)("(?:\\.|[^"\\])*")/;
+  return rawPkg.replace(pattern, (_, prefix) => `${prefix}${JSON.stringify(`${current} && ${gateCmd}`)}`);
+}
+function writeHookFile(hookPath, command, gated) {
+  if (!existsSync6(hookPath)) {
+    mkdirSync3(dirname5(hookPath), { recursive: true });
+    writeFileSync3(hookPath, `#!/bin/sh
+set -e
+${command}
+`, { mode: 493 });
+    chmodSync(hookPath, 493);
+    return true;
+  }
+  const existing = readFileSync7(hookPath, "utf8");
+  if (gated(existing)) return false;
+  const eol = existing.includes("\r\n") ? "\r\n" : "\n";
+  const lines = existing.replace(/(\r?\n)+$/, "").split(/\r?\n/);
+  const at = /^\s*(?:exec\s|exit\b)/.test(lines.at(-1) ?? "") ? lines.length - 1 : lines.length;
+  lines.splice(at, 0, command);
+  writeFileSync3(hookPath, `${lines.join(eol)}${eol}`, { mode: 493 });
+  chmodSync(hookPath, 493);
+  return true;
+}
+function applyCommitGate(root, options = {}) {
+  if (options.approved === false) {
+    return { written: [], packageManager: null, gateCommand: null, skipped: true };
+  }
+  const pkgPath = join4(root, "package.json");
+  const rawPkg = existsSync6(pkgPath) ? readFileSync7(pkgPath, "utf8") : void 0;
+  const scripts = rawPkg ? JSON.parse(rawPkg).scripts ?? {} : {};
+  const pm = rawPkg ? detectPackageManager(root, rawPkg) : null;
+  const docsLint = scripts["docs-lint"];
+  const scriptIsKit = typeof docsLint === "string" && docsLint.includes(KIT_CLI);
+  const gateCommand = docsLintGateCommand(scriptIsKit ? pm : null);
+  const mode = options.mode ?? "auto";
+  const written = [];
+  const hooks = gitHooks(root);
+  const hookPath = hooks ? join4(hooks.dir, "pre-commit") : void 0;
+  const label2 = (path) => relative7(root, path).split(sep8).join("/");
+  const check = scripts.check;
+  if (rawPkg && pm && typeof check === "string" && (mode === "check-script" || mode === "auto")) {
+    if (!runsGate(check, scriptIsKit)) {
+      writeFileSync3(pkgPath, appendCheckScript(rawPkg, check, gateCommand));
+      written.push("package.json");
+    }
+    const gated2 = (text2) => runsGate(text2, scriptIsKit) || runsScript(text2, "check");
+    if (hooks && hookPath && writeHookFile(hookPath, inProject(checkScriptCommand(pm), hooks.projectFromTop), gated2)) {
+      written.push(label2(hookPath));
+    }
+    return { written, packageManager: pm, gateCommand, skipped: false };
+  }
+  if (!hooks || !hookPath) throw new Error("commit gate needs a git repository or a check script to extend");
+  const gated = (text2) => runsGate(text2, scriptIsKit);
+  if (writeHookFile(hookPath, inProject(gateCommand, hooks.projectFromTop), gated)) written.push(label2(hookPath));
+  return { written, packageManager: pm, gateCommand, skipped: false };
+}
+
+// scripts/commands/init/project-cli.ts
+import { copyFileSync, existsSync as existsSync7, mkdirSync as mkdirSync4, readFileSync as readFileSync8, rmSync, writeFileSync as writeFileSync4 } from "node:fs";
+import { dirname as dirname6, join as join5, resolve as resolve12 } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
+
+// scripts/commands/init/project-cli-source.ts
+var ALL_HOUSE_STYLE_RULES = [
+  "line-length",
+  "heading-gap",
+  "stale-pointer",
+  "file-size"
+];
+var RULE_EXPORTS = {
+  "line-length": "lineLengthRule",
+  "heading-gap": "headingGapRule",
+  "stale-pointer": "stalePointerRule",
+  "file-size": "fileSizeRule"
+};
+function renderPrivatePackageJson() {
+  return `${JSON.stringify({
+    private: true,
+    type: "module",
+    dependencies: { commander: COMMANDER_VERSION }
+  }, null, 2)}
+`;
+}
+function renderProjectCliIndex(rules = ALL_HOUSE_STYLE_RULES, dirs = ["docs/specs"]) {
+  const ruleImports = rules.map((name) => `import { ${RULE_EXPORTS[name]} } from './${name}.mjs';`);
+  const ruleRefs = rules.map((name) => RULE_EXPORTS[name]).join(", ");
+  return [
+    "#!/usr/bin/env node",
+    "import { spawnSync } from 'node:child_process';",
+    "import { dirname, join, resolve } from 'node:path';",
+    "import { fileURLToPath } from 'node:url';",
+    "import { createCommandShell, registerCommands, runProgram } from './command-shell.mjs';",
+    "import { discoverPlugin } from './discover-plugin.mjs';",
+    "import { checkedDocsPath, frontmatterFindings, readProjectDocument, readProjectDocuments } from './read-document.mjs';",
+    ...ruleImports,
+    "",
+    `export const DOCS_DIRS = ${JSON.stringify(dirs)};`,
+    `const LOCAL_RULES = [${ruleRefs}];`,
+    'const defaultRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");',
+    "const MISSING_PLUGIN_WARNING = 'warning: struct-docs plugin not found; structural checks skipped (install the plugin in a supported host or set STRUCT_DOCS_ROOT)\\n';",
+    "",
+    "function buildForwardArgs(name, options) {",
+    "  const args = [name];",
+    "  if (name === 'init' && options.apply) args.push('--apply');",
+    "  const initFlags = [['--project-cli', 'projectCli'], ['--docs-dirs', 'docsDirs'], ['--commit-gate', 'commitGate']];",
+    "  if (name === 'init') for (const [flag, key] of initFlags) if (options[key]) args.push(flag, options[key]);",
+    "  if (name === 'audit') { if (options.fix) args.push('--fix'); if (options.verbose) args.push('--verbose'); }",
+    "  if ((name === 'check' || name === 'status') && options.file) args.push(options.file);",
+    "  return args;",
+    "}",
+    "",
+    "function forwardPlugin(name, options, writeErr) {",
+    "  const pluginRoot = discoverPlugin({ project: options.root });",
+    "  if (!pluginRoot) return { discovered: false, stdout: MISSING_PLUGIN_WARNING, exitCode: 0 };",
+    "  const bundle = join(pluginRoot, 'bin', 'docs-lint.mjs');",
+    "  const result = spawnSync(process.execPath, [bundle, ...buildForwardArgs(name, options)], { cwd: options.root, encoding: 'utf8' });",
+    "  if (result.stderr) writeErr(result.stderr);",
+    "  const failed = Boolean(result.error) || result.status !== 0;",
+    "  return { discovered: true, stdout: result.stdout ?? '', exitCode: failed ? (result.status && result.status > 0 ? result.status : 1) : 0 };",
+    "}",
+    "",
+    "const runDoc = (doc, includeFm) => [...(includeFm ? frontmatterFindings(doc) : []), ...LOCAL_RULES.flatMap((rule) => rule(doc, DOCS_DIRS))];",
+    "",
+    "export function runLocalCli(args = process.argv.slice(2), options = {}) {",
+    "  const root = options.root ?? defaultRoot;",
+    "  const writeErr = options.writeErr ?? ((text) => process.stderr.write(text));",
+    "  const create = () => {",
+    "    const shell = createCommandShell({ ...options, root, handlers: {",
+    "      init: (opts) => ({ ...forwardPlugin('init', opts, writeErr), findings: [] }),",
+    "      repair: (opts) => ({ ...forwardPlugin('repair', opts, writeErr), findings: [] }),",
+    "      status: (opts) => ({ ...forwardPlugin('status', opts, writeErr), findings: [] }),",
+    "      audit: (opts) => {",
+    "        const fwd = forwardPlugin('audit', opts, writeErr);",
+    "        const findings = readProjectDocuments(opts.root, DOCS_DIRS).flatMap((doc) => runDoc(doc, !fwd.discovered));",
+    "        return { stdout: fwd.stdout, exitCode: fwd.exitCode, findings };",
+    "      },",
+    "      check: (opts) => {",
+    "        // A missing file fails here, before forwarding, so it fails even without the plugin.",
+    "        const path = checkedDocsPath(opts.root, opts.file);",
+    "        const fwd = forwardPlugin('check', opts, writeErr);",
+    "        const doc = path === undefined ? undefined : readProjectDocument(opts.root, path);",
+    "        return { stdout: fwd.stdout, exitCode: fwd.exitCode, findings: doc ? runDoc(doc, !fwd.discovered) : [] };",
+    "      },",
+    "    } });",
+    "    registerCommands(shell.program);",
+    "    return shell;",
+    "  };",
+    "  return runProgram(args, create, { writeErr });",
+    "}",
+    "",
+    "if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exitCode = await runLocalCli();",
+    ""
+  ].join("\n");
+}
+
+// scripts/commands/init/project-cli.ts
+var CORE_KIT_FILES = ["command-shell.mjs", "discover-plugin.mjs", "read-document.mjs", "report.mjs"];
+function defaultAssetsDir() {
+  const here = dirname6(fileURLToPath2(import.meta.url));
+  for (const rel of ["../../../assets/project-cli", "../../../../assets/project-cli", "../assets/project-cli"]) {
+    const candidate = resolve12(here, rel);
+    if (existsSync7(candidate)) return candidate;
+  }
+  return resolve12(here, "../../../assets/project-cli");
+}
+function applyProjectCli(root, options = {}) {
+  const rules = options.rules ?? ALL_HOUSE_STYLE_RULES;
+  const dirs = options.dirs ?? ["docs/specs"];
+  const assetsDir = options.assetsDir ?? defaultAssetsDir();
+  const cliDir = join5(root, "tools", "docs-cli");
+  mkdirSync4(cliDir, { recursive: true });
+  const written = [];
+  for (const file of CORE_KIT_FILES) {
+    copyFileSync(join5(assetsDir, file), join5(cliDir, file));
+    written.push(`tools/docs-cli/${file}`);
+  }
+  for (const rule of ALL_HOUSE_STYLE_RULES) {
+    const target = join5(cliDir, `${rule}.mjs`);
+    if (rules.includes(rule)) {
+      copyFileSync(join5(assetsDir, `${rule}.mjs`), target);
+      written.push(`tools/docs-cli/${rule}.mjs`);
+    } else if (existsSync7(target)) {
+      rmSync(target, { force: true });
+    }
+  }
+  writeFileSync4(join5(cliDir, "index.mjs"), renderProjectCliIndex(rules, dirs));
+  written.push("tools/docs-cli/index.mjs");
+  const rootPkgPath = join5(root, "package.json");
+  if (existsSync7(rootPkgPath)) {
+    const original = readFileSync8(rootPkgPath, "utf8");
+    const pm = detectPackageManager(root, original);
+    const install = commanderInstallArgs(pm);
+    const updated = updateProjectPackageJson(original);
+    if (updated !== original) {
+      writeFileSync4(rootPkgPath, updated);
+      written.push("package.json");
+    }
+    return { written, packageManager: pm, installCommand: [install.command, ...install.args] };
+  }
+  writeFileSync4(join5(cliDir, "package.json"), renderPrivatePackageJson());
+  written.push("tools/docs-cli/package.json");
+  return { written, packageManager: "npm", installCommand: ["npm", "install", "--prefix", "tools/docs-cli"] };
+}
+
+// scripts/commands/init/integrations.ts
+var list = (value2) => value2.split(",").map((item2) => item2.trim()).filter(Boolean);
+var isRule = (name) => ALL_HOUSE_STYLE_RULES.includes(name);
+function validateIntegrations(options) {
+  if ((options.projectCli || options.commitGate) && !options.apply) {
+    throw new Error("--project-cli and --commit-gate require --apply");
+  }
+  if (options.docsDirs && !options.projectCli) throw new Error("--docs-dirs requires --project-cli");
+  const outside = list(options.docsDirs ?? "").filter((dir) => docsRelativeDir(dir) === void 0);
+  if (outside.length) throw new Error(`--docs-dirs must name directories inside docs/: ${outside.join(", ")}`);
+  const unknown = list(options.projectCli ?? "").filter((name) => !isRule(name));
+  if (unknown.length) {
+    throw new Error(`unknown house-style rule: ${unknown.join(", ")} (choose from ${ALL_HOUSE_STYLE_RULES.join(", ")})`);
+  }
+  if (options.projectCli !== void 0 && !list(options.projectCli).length) {
+    throw new Error("--project-cli needs at least one rule");
+  }
+  const hasCli = options.projectCli || existsSync8(join6(options.root, "tools", "docs-cli", "index.mjs"));
+  if (options.commitGate && !hasCli) throw new Error("--commit-gate needs the project CLI; pass --project-cli");
+}
+function applyIntegrations(options) {
+  const lines = [];
+  if (options.projectCli) {
+    const cli = applyProjectCli(options.root, {
+      rules: list(options.projectCli).filter(isRule),
+      ...options.docsDirs ? { dirs: list(options.docsDirs) } : {}
+    });
+    lines.push(...cli.written.map((path) => `wrote ${path}`), `install: ${cli.installCommand.join(" ")}`);
+  }
+  if (options.commitGate) {
+    const gate = applyCommitGate(options.root, { mode: options.commitGate });
+    lines.push(...gate.written.map((path) => `wrote ${path}`));
+  }
+  return lines;
+}
+
 // scripts/render/init-plan.ts
 function formatInitPlan(plan) {
   const lines = ["Initialization plan:"];
@@ -11912,14 +12311,16 @@ function formatInitPlan(plan) {
 
 // scripts/commands/handlers/init.ts
 function run(options) {
+  validateIntegrations(options);
   const { config, findings } = loadConfig(options.root);
   if (!config) return { findings };
   const found = surveyInit(options.root, config);
   const plan = planInit(found);
   if (plan.refusals.length) return { findings: plan.refusals };
   if (!options.apply) return { findings: [], stdout: formatInitPlan(plan) };
-  const written = applyInit(found, plan);
-  return { findings: [], ...written.length ? { stdout: written.map((path) => `wrote ${path}`).join("\n") + "\n" } : {} };
+  const lines = [...applyInit(found, plan).map((path) => `wrote ${path}`), ...applyIntegrations(options)];
+  return { findings: [], ...lines.length ? { stdout: `${lines.join("\n")}
+` } : {} };
 }
 
 // scripts/policy/finding-order.ts
@@ -12658,18 +13059,18 @@ function auditProject(root) {
 }
 
 // scripts/repair/status-fields.ts
-import { lstatSync as lstatSync5, readFileSync as readFileSync7, writeFileSync as writeFileSync3 } from "node:fs";
-import { resolve as resolve9 } from "node:path";
+import { lstatSync as lstatSync6, readFileSync as readFileSync9, writeFileSync as writeFileSync5 } from "node:fs";
+import { resolve as resolve13 } from "node:path";
 function repairStatusFields(root, documents, findings) {
   let applied = 0;
   for (const document of documents) {
     const repairs = findings.filter((finding) => finding.file === document.path && finding.severity === "repairable" && finding.repair.field === "status" && !finding.repair.withheld);
     if (!repairs.length) continue;
-    const path = resolve9(root, "docs", document.path);
+    const path = resolve13(root, "docs", document.path);
     let current;
     try {
-      if (!lstatSync5(path).isFile()) continue;
-      current = readFileSync7(path, "utf8");
+      if (!lstatSync6(path).isFile()) continue;
+      current = readFileSync9(path, "utf8");
     } catch (error) {
       if (error instanceof Error && "code" in error && error.code === "ENOENT") continue;
       throw error;
@@ -12688,7 +13089,7 @@ function repairStatusFields(root, documents, findings) {
       finding.repair.applied = true;
       count += 1;
     }
-    if (count) writeFileSync3(path, parts.join(""));
+    if (count) writeFileSync5(path, parts.join(""));
     applied += count;
   }
   return applied;
@@ -12718,22 +13119,12 @@ function run2(options) {
 }
 
 // scripts/commands/handlers/check.ts
-import { lstatSync as lstatSync6 } from "node:fs";
-import { isAbsolute as isAbsolute4, relative as relative5, resolve as resolve10, sep as sep5 } from "node:path";
 function run3(options) {
   const { config, findings } = loadConfig(options.root);
   if (!config) return { findings };
   if (!options.file) throw new Error("check requires a file path");
-  const path = relative5(resolve10(options.root, "docs"), resolve10(options.root, options.file.replaceAll("\\", "/")));
-  if (isAbsolute4(path) || path === ".." || path.startsWith(`..${sep5}`)) return { findings: [] };
-  const normalized = path.split(sep5).join("/");
-  try {
-    const file = lstatSync6(resolve10(options.root, "docs", normalized));
-    if (file.isDirectory()) throw new Error("check requires a file, not a directory");
-  } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") return { findings: [] };
-    throw error;
-  }
+  const normalized = checkedDocsPath(options.root, options.file);
+  if (normalized === void 0) return { findings: [] };
   const classification = classify(normalized, config);
   if (classification.cls === "forbidden") return { findings: [{
     file: normalized,
@@ -12825,12 +13216,12 @@ function createProgressView(roadmap, model) {
   const root = model.root;
   const id2 = root && fileId(root);
   if (!root || !id2) throw new Error(`Roadmap ${roadmap} has no modeled root`);
-  const childrenOf = (file, ancestors) => {
-    if (ancestors.has(file.rel)) throw new Error(`Cyclic breakout at ${file.rel}`);
-    const visited = /* @__PURE__ */ new Set([...ancestors, file.rel]);
+  const childrenOf = (file, ancestors2) => {
+    if (ancestors2.has(file.rel)) throw new Error(`Cyclic breakout at ${file.rel}`);
+    const visited = /* @__PURE__ */ new Set([...ancestors2, file.rel]);
     return file.nodes.map((node) => nodeView(file, node, visited));
   };
-  const nodeView = (file, node, ancestors) => {
+  const nodeView = (file, node, ancestors2) => {
     const target = model.resolveBreakout(file.rel, node);
     if (node.breakout && !target) throw new Error(`Unresolved breakout at ${file.rel}:${node.line}`);
     return {
@@ -12840,7 +13231,7 @@ function createProgressView(roadmap, model) {
       deps: node.deps,
       status: target ? model.effectiveStatus(fileId(target)) : node.status,
       leaf: !node.breakout,
-      children: target ? childrenOf(target, ancestors) : [],
+      children: target ? childrenOf(target, ancestors2) : [],
       ...target ? { breakout: target.rel } : {}
     };
   };
@@ -12859,10 +13250,10 @@ var createProgressViews = (models) => [...models].map(([name, model]) => createP
 // scripts/roadmap/progress-scope.ts
 function scopeProgress(view, file = view.root.file) {
   if (file === view.root.file) return { ...view, ancestors: [] };
-  const find = (node, ancestors) => {
-    if (node.breakout === file) return { roadmap: view.roadmap, root: node, ancestors };
+  const find = (node, ancestors2) => {
+    if (node.breakout === file) return { roadmap: view.roadmap, root: node, ancestors: ancestors2 };
     for (const child of node.children) {
-      const found = find(child, [...ancestors, node]);
+      const found = find(child, [...ancestors2, node]);
       if (found) return found;
     }
     return void 0;
@@ -12872,17 +13263,17 @@ function scopeProgress(view, file = view.root.file) {
 
 // scripts/commands/status-path.ts
 import { lstatSync as lstatSync7 } from "node:fs";
-import { isAbsolute as isAbsolute5, relative as relative6, resolve as resolve11, sep as sep6 } from "node:path";
+import { relative as relative8, resolve as resolve14, sep as sep9 } from "node:path";
 function statusPath(root, file) {
-  const directory = resolve11(root, "docs", "roadmaps");
-  const absolute = resolve11(root, file.replaceAll("\\", "/"));
-  const path = relative6(directory, absolute);
-  if (!path || isAbsolute5(path) || path === ".." || path.startsWith(`..${sep6}`)) {
+  const directory = resolve14(root, "docs", "roadmaps");
+  const absolute = resolve14(root, file.replaceAll("\\", "/"));
+  const path = relative8(directory, absolute);
+  if (!path || !isWithin(path)) {
     throw new Error("status file must be inside docs/roadmaps/");
   }
-  let ancestor = resolve11(root);
-  for (const part of relative6(ancestor, absolute).split(sep6)) {
-    ancestor = resolve11(ancestor, part);
+  let ancestor = resolve14(root);
+  for (const part of relative8(ancestor, absolute).split(sep9)) {
+    ancestor = resolve14(ancestor, part);
     try {
       if (lstatSync7(ancestor).isSymbolicLink()) throw new Error("status file must not follow symbolic links");
     } catch (error) {
@@ -12890,7 +13281,7 @@ function statusPath(root, file) {
       throw error;
     }
   }
-  return `roadmaps/${path.split(sep6).join("/")}`;
+  return `roadmaps/${path.split(sep9).join("/")}`;
 }
 
 // scripts/commands/handlers/status.ts
@@ -12932,9 +13323,37 @@ function run5(options) {
   }
 }
 
+// scripts/read/project-root.ts
+import { existsSync as existsSync9, readFileSync as readFileSync10 } from "node:fs";
+import { dirname as dirname7, join as join7, resolve as resolve15 } from "node:path";
+function isAdopted(root) {
+  try {
+    const lines = readFileSync10(join7(root, "docs", "README.md"), "utf8").split(/\r?\n/).map((line2) => line2.trim());
+    const open2 = lines.flatMap((line2, index) => line2 === "<!-- struct-docs:index -->" ? [index] : []);
+    const close2 = lines.flatMap((line2, index) => line2 === "<!-- /struct-docs:index -->" ? [index] : []);
+    return open2.length === 1 && close2.length === 1 && Number(open2[0]) < Number(close2[0]);
+  } catch {
+    return false;
+  }
+}
+function* ancestors(start) {
+  let dir = resolve15(start);
+  for (; ; ) {
+    yield dir;
+    const parent = dirname7(dir);
+    if (parent === dir || existsSync9(join7(dir, ".git"))) return;
+    dir = parent;
+  }
+}
+function findProjectRoot(start) {
+  return [...ancestors(start)].find(isAdopted) ?? resolve15(start);
+}
+
 // scripts/commands/program.ts
 function createProgram(options = {}) {
-  const shell = createCommandShell({ ...options, handlers: { init: run, audit: run2, check: run3, repair: run4, status: run5, ...options.handlers } });
+  const located = options.root === void 0 ? { root: findProjectRoot(process.cwd()), cwd: process.cwd() } : {};
+  const handlers = { init: run, audit: run2, check: run3, repair: run4, status: run5, ...options.handlers };
+  const shell = createCommandShell({ ...options, ...located, handlers });
   registerCommands(shell.program);
   return shell;
 }

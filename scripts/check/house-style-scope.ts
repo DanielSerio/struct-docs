@@ -1,17 +1,16 @@
 import type { ParsedDocument } from '../policy/document.js';
+import { docsRelativeDir } from '../policy/docs-dir.js';
 
 export type HouseStyleDocument = Pick<ParsedDocument, 'path' | 'source' | 'lines' | 'frontmatter'>;
 export const DEFAULT_HOUSE_STYLE_DIRS: readonly string[] = ['docs/specs'];
 
 /** Match immediate Markdown files under the configured directories (docs-relative or repo-relative). */
 export function inHouseStyleScope(path: string, dirs: readonly string[] = DEFAULT_HOUSE_STYLE_DIRS): boolean {
-  const normalized = path.replaceAll('\\', '/').replace(/^\.\//, '');
-  if (!/\.md$/i.test(normalized) || !normalized.includes('/')) return false;
-  const parent = normalized.slice(0, normalized.lastIndexOf('/'));
-  return dirs.some((dir) => {
-    const clean = dir.replaceAll('\\', '/').replace(/\/+$/, '');
-    return parent === clean || (clean.startsWith('docs/') && parent === clean.slice(5));
-  });
+  const normalized = path.replaceAll('\\', '/');
+  if (!/\.md$/i.test(normalized)) return false;
+  // A root file has no slash; its parent is the docs root, which reads as ''.
+  const parent = docsRelativeDir(normalized.slice(0, Math.max(normalized.lastIndexOf('/'), 0)));
+  return parent !== undefined && dirs.some((dir) => docsRelativeDir(dir) === parent);
 }
 
 /** Use parsed frontmatter endLine when available, or skip a raw leading YAML fence block. */

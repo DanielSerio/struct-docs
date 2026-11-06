@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import { resolve } from 'node:path';
 import { findingsExitCode, formatReport } from '../render/report.js';
 import { register as registerAudit } from './audit.js';
 import { register as registerCheck } from './check.js';
@@ -24,9 +25,13 @@ export function createCommandShell(options: CliOptions & { handlers: CommandHand
   const writeOut = options.writeOut ?? ((text: string) => process.stdout.write(text));
   const writeErr = options.writeErr ?? ((text: string) => process.stderr.write(text));
   let exitCode = 0;
+  const root = options.root ?? process.cwd();
+  const cwd = options.cwd ?? root;
   const program: CliProgram = Object.assign(new Command(), {
     async execute(name: CommandName, flags: Omit<CommandOptions, 'root'> = {}) {
-      const result = await options.handlers[name]({ ...flags, root: options.root ?? process.cwd() });
+      // File arguments name what the user sees from where they ran, even when the root is above.
+      const file = flags.file === undefined ? {} : { file: resolve(cwd, flags.file.replaceAll('\\', '/')) };
+      const result = await options.handlers[name]({ ...flags, ...file, root });
       if (result.stdout) writeOut(result.stdout);
       const report = formatReport(result.findings, flags);
       if (report) writeOut(report);

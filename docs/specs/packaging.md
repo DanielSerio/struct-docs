@@ -35,8 +35,13 @@ because Antigravity sets no plugin-root variable; `CLAUDE_PLUGIN_ROOT` is not re
 points normalize each payload to a project root and written paths before shared logic runs:
 Claude's `tool_input.file_path`, Codex's `Edit`/`Write` input and the file headers of an
 `apply_patch` in `tool_input.command`, and Antigravity's camelCase `toolCall.args` from its
-file-writing tools with `workspacePaths` as the root. An unrecognized payload exits 0 with that
-host's empty output (`{}` for Antigravity-shaped payloads, or empty `stdout` otherwise). Sanitized
+file-writing tools with every `workspacePaths` entry as a root (a relative path belongs to the first root
+holding it, and Stop repairs each root with pending work under one shared deadline). The adopted project is the nearest directory
+at or above each written file (on Stop, at or above the reported root, with a pending sentinel)
+whose `docs/README.md` holds the marker pair, searched no higher than the git root, because a
+host may report a subdirectory. An unrecognized payload exits 0 with that
+host's empty output (`{}` for Antigravity-shaped payloads, those with a `workspacePaths` array
+and a `conversationId`, or empty `stdout` otherwise). Sanitized
 `PostToolUse` and `Stop` payloads captured from real sessions of each host are committed under
 `tests/fixtures/hooks/`.
 
@@ -63,9 +68,9 @@ not the checks.
   - **Manifest path**: `.antigravity-plugin/plugin.json`.
   - **Plugin hook config location**: `hooks.json` at the plugin root, keyed by hook name (`"struct-docs"`).
   - **Plugin install location**: `~/.gemini/config/plugins/<plugin>/` via `agy plugin install <path>`, or `<workspace>/.agents/plugins/<plugin>/`.
-  - **Required `PostToolUse` and `Stop` output**: Command hooks must print valid JSON on `stdout`. `PostToolUse` prints `{}` when clean, and otherwise prints `{"overwriteResult": "..."}` holding the original tool result (`payload.result`, when present) followed by the findings. `Stop` prints `{"decision": "stop"}` and never outputs `"continue"`.
+  - **Required `PostToolUse` and `Stop` output**: Command hooks must print valid JSON on `stdout`. `PostToolUse` prints `{}` when clean, and otherwise prints `{"overwriteResult": "..."}` holding the findings alone. `Stop` prints `{"decision": "stop"}` and never outputs `"continue"`.
   - **Finding files inside the plugin**: Antigravity runs hook commands with `process.cwd()` set to the directory containing `hooks.json` (the plugin root), so `node ./hooks/<script>.mjs` resolves inside the plugin and `import.meta.url` resolves `../bin/docs-lint.mjs`. Skills resolve `../../bin/docs-lint.mjs` relative to `skills/<name>/SKILL.md`.
-  - **Observed behavior (`agy 1.4.12`, sessions `c6f043a4-7870-4023-970c-0b6c11cb96cc` and `5616c166-0dac-4fff-8c4c-6e8fbdd2fc5e`)**: Antigravity sets no `CLAUDE_PLUGIN_ROOT`, `CODEX_PLUGIN_ROOT`, or `PLUGIN_ROOT` environment variable in hook processes and spawns hook `command` strings directly without a shell (splitting on whitespace without stripping quotes, so hook arguments in `hooks.json` must remain unquoted relative paths); `exa.hooks_pb.PostToolHookArgs` defines `result` and `PostToolHookResult` defines `overwriteResult` (which `protojson` accepts on `PostToolUse` stdout even though `hooks.md` only documents `{}`, while `jsonhook` command hooks in `1.4.12` omit `result` on stdin); and `agy plugin validate --strict` requires a root `hooks.json` with a named top-level hook entry.
+  - **Observed behavior (`agy 1.4.12`, sessions `c6f043a4-7870-4023-970c-0b6c11cb96cc`, `5616c166-0dac-4fff-8c4c-6e8fbdd2fc5e` and `3288b08f-0bae-4686-9a84-93a765f36fbe`; `agy 1.5.0`, session `a1e73f93-5fae-49b0-83ca-13708e3b91b5`, the `edit_file` capture)**: Antigravity sets no `CLAUDE_PLUGIN_ROOT`, `CODEX_PLUGIN_ROOT`, or `PLUGIN_ROOT` environment variable in hook processes and spawns hook `command` strings directly without a shell (splitting on whitespace without stripping quotes, so hook arguments in `hooks.json` must remain unquoted relative paths); file creation and full-file overwrites (`Overwrite: true`) invoke `write_file`, and single or multiple partial edits invoke `edit_file` (once per contiguous edit), both passing the path in `toolCall.args.Path` (absolute with backslashes on Windows); `exa.hooks_pb.PostToolHookArgs` defines `result` and `PostToolHookResult` defines `overwriteResult` (which `protojson` accepts on `PostToolUse` stdout even though `hooks.md` only documents `{}`, while `jsonhook` command hooks omit `result` on stdin for both `write_file` and `edit_file`, so `overwriteResult` holds the findings alone); every `PostToolUse` and `Stop` payload shares `artifactDirectoryPath`, `conversationId`, `error`, `lastUserInput`, `modelName`, `transcriptPath`, and `workspacePaths` (with `stepIdx` and `toolCall` on `PostToolUse`, and `executionNum`, `fullyIdle`, and `terminationReason` on `Stop`), where `workspacePaths` lists every root of a multi-root workspace (`--add-dir`); and `agy plugin validate --strict` requires a root `hooks.json` with a named top-level hook entry.
 
 The build also emits the shared Commander setup, reader, reporter and rule templates as plain
 `.mjs` under `assets/project-cli/`, from the same TypeScript sources the bundle uses. These are
@@ -84,6 +89,12 @@ do not remove their global entries. Migration swaps project markers to retire ol
 
 On Write or Edit, run only single-file naming, type-placement and frontmatter-parse checks;
 never repair or run cross-document ownership/dependency checks. Bound reported findings.
+Every check in one hook run shares a deadline under the host timeout, so findings already
+gathered are printed and later files go unchecked rather than the hook being killed. A Codex
+patch header is resolved against the payload's `workdir` when present, then the session `cwd`.
+A relative header that resolves to no file (a `cd` inside the command) cannot be checked, but
+when it names a path under a `docs` folder or `.struct-docs.yml` it still arms the session's
+project so Stop repairs it.
 Writes anywhere under docs, and writes to root .struct-docs.yml, touch a temp sentinel keyed
 by the repository path hash. Config is outside docs now, but changes its derived index.
 

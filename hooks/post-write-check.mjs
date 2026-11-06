@@ -1,12 +1,20 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { relative, resolve, sep } from 'node:path';
-import { cliPath, guard, isAdopted, isUnderDocs, readPayload, writtenFile } from './lib.mjs';
+import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { cliPath, guard, readPayload } from './lib.mjs';
+import { deadlineFor } from './limits.mjs';
+import { ancestors, isAdopted, isUnderDocs, writtenFile } from './project.mjs';
 import { markPending } from './pending.mjs';
 
-function checkFile(root, file) {
+/** A relative path that names something under a docs folder, or the config file. */
+const looksLikeDocs = (path) => !isAbsolute(path) && /(?:^|[\\/])(?:docs[\\/]|\.struct-docs\.yml$)/.test(path);
+
+function checkFile(root, file, deadline) {
+  // Every check shares one deadline, so the hook always prints before the host's kill.
+  const timeout = deadline - Date.now();
+  if (timeout <= 0) return [];
   const result = spawnSync(process.execPath, [cliPath, 'check', file], {
-    cwd: root, encoding: 'utf8', timeout: 4000,
+    cwd: root, encoding: 'utf8', timeout,
   });
   if (result.error || result.status !== 1 || !result.stdout) return [];
   // Config errors are not findings about this file, and feedback stays bounded.
@@ -20,31 +28,43 @@ function checkFile(root, file) {
 
 /** Check each surviving written file; the Stop hook owns all derived repairs. */
 await guard(async () => {
+  const deadline = deadlineFor('PostToolUse');
   const payload = await readPayload();
   if (!payload) return;
   const writeOutput = (findings = '') => {
     if (payload.host === 'antigravity') {
-      const overwriteResult = payload.result ? `${payload.result.trimEnd()}\n${findings}` : findings;
-      process.stdout.write(`${JSON.stringify(findings ? { overwriteResult } : {})}\n`);
+      process.stdout.write(`${JSON.stringify(findings ? { overwriteResult: findings } : {})}\n`);
     } else if (findings) {
       process.stdout.write(`${findings}\n`);
     }
   };
-  if (!payload.root || !payload.files.length) return writeOutput();
-  const root = resolve(payload.root);
-  if (!isAdopted(root)) return writeOutput();
-  let armed = false;
+  if (!payload.roots.length || !payload.files.length) return writeOutput();
+  const armed = new Set();
+  const arm = (root) => {
+    if (!armed.has(root)) markPending(root);
+    armed.add(root);
+  };
   const findings = [];
+  let unresolved = false;
   for (const candidate of payload.files) {
-    const file = writtenFile(root, candidate);
-    if (!file) continue;
+    const file = writtenFile(payload.roots, candidate);
+    // A patch applied from a subdirectory (a `cd` inside the shell command) leaves relative
+    // headers that resolve nowhere. They cannot be checked, but they still need a Stop repair.
+    if (!file) {
+      unresolved ||= payload.patch === true && looksLikeDocs(candidate);
+      continue;
+    }
+    // The written file, not the host's directory, names the adopted project it belongs to.
+    const root = [...ancestors(dirname(file))].find(isAdopted);
+    if (!root) continue;
     const docs = isUnderDocs(root, file);
     if (!docs && file !== resolve(root, '.struct-docs.yml')) continue;
-    if (!armed) {
-      markPending(root);
-      armed = true;
-    }
-    if (docs && /\.md$/i.test(file)) findings.push(...checkFile(root, file));
+    arm(root);
+    if (docs && /\.md$/i.test(file)) findings.push(...checkFile(root, file, deadline));
+  }
+  if (unresolved) {
+    const session = payload.roots.map((start) => [...ancestors(start)].find(isAdopted)).find(Boolean);
+    if (session) arm(session);
   }
   writeOutput(findings.join('\n'));
 });

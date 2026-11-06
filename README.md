@@ -34,7 +34,8 @@ claude --plugin-dir $pluginLink
 ```
 
 Loading with `--plugin-dir` applies only to that session. No global `CLAUDE.md` or
-`settings.json` edit is needed.
+`settings.json` edit is needed. It records no install, so if `init` generates a project CLI,
+set `STRUCT_DOCS_ROOT=/path/to/struct-docs` where you commit, or its structural checks are skipped.
 
 ### Codex
 
@@ -73,7 +74,7 @@ works only within the named index or milestone. It never pushes or merges.
 
 ## CLI and hooks
 
-Run the bundle from the project whose docs you want to inspect:
+Run the bundle from the project whose docs you want to inspect, or any directory inside it:
 
 ```sh
 node /path/to/struct-docs/bin/docs-lint.mjs init
@@ -85,6 +86,8 @@ node /path/to/struct-docs/bin/docs-lint.mjs status docs/roadmaps/v1/index.md
 ```
 
 `init` previews; `init --apply` applies safe setup after the approved semantic changes.
+Add `--project-cli <rules>` to write a project-owned `tools/docs-cli/` with house-style
+rules, and `--commit-gate auto` to run it on every commit.
 Audit is silent when clean. Errors exit 1; usage and execution failures exit 2.
 Status is read-only and prints the tree and next ready leaf, or the reason none is ready.
 Root `.struct-docs.yml` configures document types, fields and exclusions.

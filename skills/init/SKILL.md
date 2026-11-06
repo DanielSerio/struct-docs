@@ -84,16 +84,22 @@ Report what moved, ownership/config choices, preserved content and remaining fin
 
 Next, offer the optional project CLI at `tools/docs-cli/` with selectable house-style rules
 (`line-length`, `heading-gap`, `stale-pointer` and `file-size`, defaulting to `docs/specs/`).
-Apply only what the user approves: copy `command-shell.mjs`, `discover-plugin.mjs`,
-`read-document.mjs`, `report.mjs` and the approved rule `.mjs` files from
-`../../assets/project-cli/` into `tools/docs-cli/`, write `tools/docs-cli/index.mjs` with
-the approved rules and `DOCS_DIRS`, and if `package.json` exists add `commander` with the
-project's package manager and a `"docs-lint": "node tools/docs-cli/index.mjs"` script while
-preserving unrelated scripts byte-for-byte; if the project has no `package.json`, write a
-private `tools/docs-cli/package.json` and leave the project root untouched.
+Apply only what the user approves, through the CLI rather than by writing files yourself:
 
-After the project CLI, offer a local commit gate (either a pre-commit hook or an addition
-to the existing check script) using the project's package manager while preserving existing
-hook or check behavior and running `docs-lint` once per commit. Respect declines at each
-step. Edit no global settings or hooks, and never migrate another original repository as a
-side effect. Work on an explicitly named disposable copy for migration rehearsals.
+```sh
+node "../../bin/docs-lint.mjs" init --apply --project-cli heading-gap,stale-pointer --docs-dirs docs/specs
+```
+
+It copies the kit and the approved rules, writes `tools/docs-cli/index.mjs`, and adds a
+`docs-lint` script and Commander to an existing `package.json` without touching unrelated
+scripts, or writes a private `tools/docs-cli/package.json` when there is none. Run the
+`install:` command it prints, using the project's package manager, then confirm
+`node tools/docs-cli/index.mjs audit` starts.
+
+After the project CLI, offer a local commit gate, either a pre-commit hook or an addition to
+the existing check script, and apply an approved one with `--commit-gate auto` (or
+`pre-commit` or `check-script`). It writes to the hook git actually runs, including
+`core.hooksPath` and husky, keeps existing hook or check behavior, and runs `docs-lint` once
+per commit. Respect declines at each step. Edit no global settings or hooks, and never migrate
+another original repository as a side effect. Work on an explicitly named disposable copy for
+migration rehearsals.

@@ -2,3 +2,4 @@
 * text=auto
 bin/** -text
 assets/project-cli/** -text
+hooks/project-root.mjs -text
