@@ -43,8 +43,9 @@ the specifications linked from the documentation index.
 - Git holds history. Retired documents are removed after content and references are resolved.
 - Installation from git requires no install step and adds no dependencies to the consuming
   project. Choosing a generated project CLI explicitly adds Commander as a dev dependency.
-- Migrate existing manage-docs repositories without losing content or changing source repos
-  during the migration rehearsal. Dogfood this repository from the planning stage.
+- Migrate existing manage-docs repositories without losing content. Convert SDLC-docs on its
+  own branch and no other repository as a side effect. Dogfood this repository from the
+  planning stage.
 
 ## Scope
 
@@ -62,6 +63,6 @@ remain useful within a single review.
 ## Success
 
 A new project gets a useful routing index immediately. Existing projects can customize
-schemas without losing checks. A migrated copy of SDLC-docs passes structural checks and
+schemas without losing checks. SDLC-docs, once converted, passes structural checks and
 continues running its selected local rules when the plugin is unavailable. The tool remains
 installed because maintenance costs less than the confusion it removes.

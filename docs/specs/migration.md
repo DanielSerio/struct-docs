@@ -1,9 +1,9 @@
 ---
-title: Manage-docs migration and rehearsal
+title: Manage-docs migration and SDLC-docs conversion
 type: spec
 status: active
-purpose: Legacy conversion, reference preservation and validation on repository copies.
-owns: [legacy-migration, migration-rehearsal]
+purpose: Legacy conversion, reference preservation and acceptance for converting SDLC-docs.
+owns: [legacy-migration, sdlc-docs-conversion]
 ---
 
 ## Plan and conversion
@@ -42,20 +42,21 @@ PRD-RAG has deployment: guide, diagrams: diagram and test-cases: test-case mappi
 architecture ignore with a reason. It has concurrent core, first-draft and test-suite roadmaps.
 The migration must retain these distinctions instead of forcing everything into specs.
 
-## Rehearsal acceptance
+## SDLC-docs conversion acceptance
 
-Work in a disposable copy of SDLC-docs, outside the original checkout. Record the starting
-inventory and diff; preserve local ignored documents intentionally included in the copy.
-Get approval for inferred topics and semantic archive choices. Demonstrate clean structure,
-resolvable references, preserved roadmap acceptance/statuses and stable index after a second
-repair. Test with reviews present and absent: generated index must match.
+Convert SDLC-docs itself, on a fresh branch cut after its in-progress work is committed.
+Record the starting inventory before anything changes; gitignored local documents stay where
+they are. Get approval for inferred topics and semantic archive choices. Demonstrate clean
+structure, resolvable references, preserved roadmap acceptance/statuses and stable index
+after a second repair. Test with reviews present and absent: generated index must match.
 
 Run selected house-style rules with the plugin available and with discovery unavailable;
 missing-plugin warnings must not disable local rules. Demonstrate a local rule error still
 fails, while missing plugin alone permits the commit gate. Record unrelated pre-existing
-findings separately instead of rewriting product prose just to make the rehearsal pass.
-Do not migrate either original repository as a side effect of this delivery.
+findings separately instead of rewriting product prose just to make the conversion pass.
+Fix any Struct Docs defect the conversion exposes in Struct Docs, never with a workaround in
+SDLC-docs. Do not migrate PRD-RAG or any other repository as a side effect.
 
-Why a copy: migration moves files and rewrites references across a real project, so it has to
-be proven repeatable where a mistake costs nothing. Why approval for topics: the CLI cannot
+Why the real repository: the conversion happens once, and a branch undoes it as completely as
+a disposable copy would, without a harness to maintain. Why approval for topics: the CLI cannot
 read prose, so `owns` values are proposals that only the owner can confirm.

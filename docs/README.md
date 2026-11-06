@@ -19,7 +19,7 @@ about undecided behavior; only what they cannot answer goes into `open-questions
 - [doc-schema](specs/doc-schema.md) — Non-roadmap frontmatter, naming, references and declared topic ownership.
 - [execute-roadmap](specs/execute-roadmap.md) — Branch, task delegation, verification and stopping behavior for roadmap execution.
 - [layout](specs/layout.md) — Path classification, generated index contents and retirement of documents.
-- [migration](specs/migration.md) — Legacy conversion, reference preservation and validation on repository copies.
+- [migration](specs/migration.md) — Legacy conversion, reference preservation and acceptance for converting SDLC-docs.
 - [packaging](specs/packaging.md) — Git installation, committed bundle, hook lifecycle and local plugin verification.
 - [project-cli](specs/project-cli.md) — Generated Commander wrapper, plugin discovery and project-owned body rules.
 - [roadmap-rollup](specs/roadmap-rollup.md) — How roadmap status is derived, how deps resolve, and what the next ready node means.
@@ -28,6 +28,6 @@ about undecided behavior; only what they cannot answer goes into `open-questions
 
 ## roadmaps
 
-- [v1](roadmaps/v1/index.md) — **in-progress** — Replace manage-docs with customizable structural checks and prove migration on a repository copy.
+- [v1](roadmaps/v1/index.md) — **in-progress** — Replace manage-docs with customizable structural checks and convert SDLC-docs to it.
 
 <!-- /struct-docs:index -->

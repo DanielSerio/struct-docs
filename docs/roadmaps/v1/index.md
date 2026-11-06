@@ -3,7 +3,7 @@ id: v1
 title: Struct Docs v1
 type: roadmap
 status: in-progress
-intent: Replace manage-docs with customizable structural checks and prove migration on a repository copy.
+intent: Replace manage-docs with customizable structural checks and convert SDLC-docs to it.
 specs: [specs/config, specs/doc-schema, specs/layout, specs/checks, specs/cli, specs/roadmap-schema, specs/roadmap-rollup, specs/skills, specs/packaging, specs/execute-roadmap, specs/project-cli, specs/migration]
 ---
 
