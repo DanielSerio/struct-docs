@@ -22,6 +22,13 @@ or exclusion with a reason for generated/vendor content; remember the decision i
 Never guess a type from a directory name alone. Create no empty directories or placeholder
 documents. Seed assets/code-review-v1.md verbatim into docs/templates/code-review-v1.md.
 
+The proposed config names every docs directory in use and every legacy `.doctypes` entry,
+defaults included, so a reader sees each folder's rules in one file and no legacy type is
+dropped unasked. Keep `owns` on for tracked doctypes and propose topics for their documents;
+turning it off is a plan item with a stated reason. Check what git already tracks before
+proposing `gitignored`. Why: a doctype that owns nothing cannot catch a document proposing
+what another already covers, such as a wishlist item proposed again.
+
 After approval, apply migration and reference updates, gitignore policy and index generation.
 Offer the project CLI and selectable house-style rules, then a pre-commit hook or integration
 with an existing check script. Respect declines. The migration spec owns conversion details.

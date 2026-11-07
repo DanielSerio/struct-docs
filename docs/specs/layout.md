@@ -65,4 +65,9 @@ exists; subsequent changes to its derived block belong to the CLI.
 
 Init writes `/docs/living/` and `/docs/reviews/` ignore entries by default, respecting config
 and preserving unrelated gitignore content. Changes to these defaults must also reconcile
-entries managed by init, without overriding independent user patterns silently.
+entries managed by init, without overriding independent user patterns silently. Init refuses
+to apply while a directory gitignored only by default holds files in the last commit; the
+config must say `gitignored: false` to keep them in git or `gitignored: true` to stop tracking.
+
+Why: once a committed directory is ignored, the next commit of a move or rename deletes its
+documents from the repository while they look untouched on disk.

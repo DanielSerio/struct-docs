@@ -31,6 +31,16 @@ type, metadata changes and references to update throughout the repository. Inclu
 
 - Proposed `owns` topics for approval, checking existing owners for uniqueness.
 - Converted custom types/fields and ignore patterns with their retained reasons.
+- Every docs directory in use and every legacy `.doctypes` entry as an explicit doctype,
+  defaults (`product`, `specs`, `reviews`) included, even when its directory is empty now.
+  Dropping a legacy type is a plan item the user approves, never a silent omission.
+- `owns` left on for tracked doctypes, with a proposed topic for each document. A doctype
+  that owns nothing cannot catch a document proposing what another already covers, so
+  `owns: false` needs a stated reason and approval.
+- `gitignored` for each doctype after checking what git already tracks
+  (`git ls-files docs/<dir>`). Committed documents stay tracked unless the user chooses to
+  stop tracking them; write that choice as `gitignored: true`, because init refuses to
+  ignore committed documents on a default alone.
 - Marker changes, gitignore reconciliation and template preservation or verbatim seeding.
 - Local CLI/integration changes, collisions, deletions and content dispositions.
 

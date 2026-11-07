@@ -10595,7 +10595,7 @@ var require_public_api = __commonJS({
       }
       return doc;
     }
-    function parse(src, reviver, options) {
+    function parse2(src, reviver, options) {
       let _reviver = void 0;
       if (typeof reviver === "function") {
         _reviver = reviver;
@@ -10636,7 +10636,7 @@ var require_public_api = __commonJS({
         return value2.toString(options);
       return new Document.Document(value2, _replacer, options).toString(options);
     }
-    exports.parse = parse;
+    exports.parse = parse2;
     exports.parseAllDocuments = parseAllDocuments;
     exports.parseDocument = parseDocument3;
     exports.stringify = stringify;
@@ -11655,6 +11655,35 @@ function readProjectFile(root, path) {
   }
 }
 
+// scripts/read/committed-docs.ts
+var import_yaml3 = __toESM(require_dist(), 1);
+import { spawnSync } from "node:child_process";
+import { readFileSync as readFileSync6 } from "node:fs";
+import { join as join3 } from "node:path";
+function committedUnder(root, directory) {
+  const result = spawnSync("git", ["ls-tree", "-r", "--name-only", "HEAD", "--", `docs/${directory}/`], {
+    cwd: root,
+    encoding: "utf8"
+  });
+  return !result.error && result.status === 0 && result.stdout.trim() !== "";
+}
+function explicitlyGitignored(root) {
+  const chosen = /* @__PURE__ */ new Set();
+  let value2;
+  try {
+    value2 = (0, import_yaml3.parse)(readFileSync6(join3(root, CONFIG_FILE), "utf8"));
+  } catch {
+    return chosen;
+  }
+  if (!isRecord(value2)) return chosen;
+  if (isRecord(value2.living) && value2.living.gitignored === true) chosen.add("living");
+  if (!isRecord(value2.doctypes)) return chosen;
+  for (const [directory, definition] of Object.entries(value2.doctypes)) {
+    if (isRecord(definition) && definition.gitignored === true) chosen.add(directory);
+  }
+  return chosen;
+}
+
 // scripts/read/init-survey.ts
 function surveyInit(root, config) {
   const tree = loadTree(root, config);
@@ -11675,6 +11704,18 @@ function surveyInit(root, config) {
     if (present && !Object.hasOwn(config.doctypes, directory)) {
       refuse(`${directory}/`, `legacy docs/${directory}/ needs an approved migration or fold plan`);
     }
+  }
+  const chosen = explicitlyGitignored(root);
+  const ignored = Object.entries(config.doctypes).filter(([, type]) => type.gitignored).map(([directory]) => directory);
+  if (config.living.gitignored) ignored.push("living");
+  for (const directory of ignored.filter((name) => !chosen.has(name) && committedUnder(root, name))) {
+    refusals.push({
+      file: `${directory}/`,
+      line: 1,
+      rule: "init-gitignore",
+      severity: "error",
+      message: `docs/${directory}/ has committed files but is gitignored by default; set \`gitignored: false\` in .struct-docs.yml to keep them in git, or \`gitignored: true\` to stop tracking them`
+    });
   }
   const legacyLine = readme?.split(/\r?\n/).findIndex((line2) => /^\s*<!--\s*\/?(?:manage-docs|clean-docs):index\s*-->\s*$/.test(line2)) ?? -1;
   if (legacyLine >= 0) refuse("README.md", "legacy index markers must be swapped by the init skill", legacyLine + 1);
@@ -11875,14 +11916,14 @@ import { mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:f
 import { dirname as dirname3 } from "node:path";
 
 // scripts/read/review-template.ts
-import { existsSync as existsSync4, readFileSync as readFileSync6 } from "node:fs";
+import { existsSync as existsSync4, readFileSync as readFileSync7 } from "node:fs";
 import { dirname, resolve as resolve10 } from "node:path";
 import { fileURLToPath } from "node:url";
 function readReviewTemplate(moduleUrl = import.meta.url) {
   let directory = dirname(fileURLToPath(moduleUrl));
   while (true) {
     const file = resolve10(directory, "assets/code-review-v1.md");
-    if (existsSync4(file)) return readFileSync6(file);
+    if (existsSync4(file)) return readFileSync7(file);
     const parent = dirname(directory);
     if (parent === directory) throw new Error("Struct Docs review template asset is missing; reinstall the plugin");
     directory = parent;
@@ -11930,18 +11971,18 @@ function applyInit(survey, plan, templateAsset = readReviewTemplate) {
 
 // scripts/commands/init/integrations.ts
 import { existsSync as existsSync8 } from "node:fs";
-import { join as join6 } from "node:path";
+import { join as join7 } from "node:path";
 
 // scripts/commands/init/commit-gate.ts
-import { chmodSync, existsSync as existsSync6, mkdirSync as mkdirSync3, readFileSync as readFileSync7, writeFileSync as writeFileSync3 } from "node:fs";
-import { dirname as dirname5, join as join4, relative as relative7, sep as sep8 } from "node:path";
+import { chmodSync, existsSync as existsSync6, mkdirSync as mkdirSync3, readFileSync as readFileSync8, writeFileSync as writeFileSync3 } from "node:fs";
+import { dirname as dirname5, join as join5, relative as relative7, sep as sep8 } from "node:path";
 
 // scripts/commands/init/git-hooks.ts
-import { spawnSync } from "node:child_process";
+import { spawnSync as spawnSync2 } from "node:child_process";
 import { realpathSync as realpathSync2 } from "node:fs";
 import { basename, dirname as dirname4, relative as relative6, resolve as resolve11, sep as sep7 } from "node:path";
 function git(root, args) {
-  const result = spawnSync("git", [...args], { cwd: root, encoding: "utf8" });
+  const result = spawnSync2("git", [...args], { cwd: root, encoding: "utf8" });
   return result.error || result.status !== 0 ? void 0 : result.stdout.trim();
 }
 function gitHooks(root) {
@@ -11960,7 +12001,7 @@ function inProject(command, projectFromTop) {
 
 // scripts/commands/init/package-json.ts
 import { existsSync as existsSync5 } from "node:fs";
-import { join as join3 } from "node:path";
+import { join as join4 } from "node:path";
 var COMMANDER_VERSION = "^14.0.3";
 var DOCS_LINT_SCRIPT = "node tools/docs-cli/index.mjs";
 function detectPackageManager(root, rawPackageJson) {
@@ -11974,9 +12015,9 @@ function detectPackageManager(root, rawPackageJson) {
     } catch {
     }
   }
-  if (existsSync5(join3(root, "pnpm-lock.yaml"))) return "pnpm";
-  if (existsSync5(join3(root, "yarn.lock"))) return "yarn";
-  if (existsSync5(join3(root, "bun.lockb")) || existsSync5(join3(root, "bun.lock"))) return "bun";
+  if (existsSync5(join4(root, "pnpm-lock.yaml"))) return "pnpm";
+  if (existsSync5(join4(root, "yarn.lock"))) return "yarn";
+  if (existsSync5(join4(root, "bun.lockb")) || existsSync5(join4(root, "bun.lock"))) return "bun";
   return "npm";
 }
 function commanderInstallArgs(pm) {
@@ -12068,7 +12109,7 @@ ${command}
     chmodSync(hookPath, 493);
     return true;
   }
-  const existing = readFileSync7(hookPath, "utf8");
+  const existing = readFileSync8(hookPath, "utf8");
   if (gated(existing)) return false;
   const eol = existing.includes("\r\n") ? "\r\n" : "\n";
   const lines = existing.replace(/(\r?\n)+$/, "").split(/\r?\n/);
@@ -12082,8 +12123,8 @@ function applyCommitGate(root, options = {}) {
   if (options.approved === false) {
     return { written: [], packageManager: null, gateCommand: null, skipped: true };
   }
-  const pkgPath = join4(root, "package.json");
-  const rawPkg = existsSync6(pkgPath) ? readFileSync7(pkgPath, "utf8") : void 0;
+  const pkgPath = join5(root, "package.json");
+  const rawPkg = existsSync6(pkgPath) ? readFileSync8(pkgPath, "utf8") : void 0;
   const scripts = rawPkg ? JSON.parse(rawPkg).scripts ?? {} : {};
   const pm = rawPkg ? detectPackageManager(root, rawPkg) : null;
   const docsLint = scripts["docs-lint"];
@@ -12092,7 +12133,7 @@ function applyCommitGate(root, options = {}) {
   const mode = options.mode ?? "auto";
   const written = [];
   const hooks = gitHooks(root);
-  const hookPath = hooks ? join4(hooks.dir, "pre-commit") : void 0;
+  const hookPath = hooks ? join5(hooks.dir, "pre-commit") : void 0;
   const label2 = (path) => relative7(root, path).split(sep8).join("/");
   const check = scripts.check;
   if (rawPkg && pm && typeof check === "string" && (mode === "check-script" || mode === "auto")) {
@@ -12113,8 +12154,8 @@ function applyCommitGate(root, options = {}) {
 }
 
 // scripts/commands/init/project-cli.ts
-import { copyFileSync, existsSync as existsSync7, mkdirSync as mkdirSync4, readFileSync as readFileSync8, rmSync, writeFileSync as writeFileSync4 } from "node:fs";
-import { dirname as dirname6, join as join5, resolve as resolve12 } from "node:path";
+import { copyFileSync, existsSync as existsSync7, mkdirSync as mkdirSync4, readFileSync as readFileSync9, rmSync, writeFileSync as writeFileSync4 } from "node:fs";
+import { dirname as dirname6, join as join6, resolve as resolve12 } from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 
 // scripts/commands/init/project-cli-source.ts
@@ -12224,27 +12265,27 @@ function applyProjectCli(root, options = {}) {
   const rules = options.rules ?? ALL_HOUSE_STYLE_RULES;
   const dirs = options.dirs ?? ["docs/specs"];
   const assetsDir = options.assetsDir ?? defaultAssetsDir();
-  const cliDir = join5(root, "tools", "docs-cli");
+  const cliDir = join6(root, "tools", "docs-cli");
   mkdirSync4(cliDir, { recursive: true });
   const written = [];
   for (const file of CORE_KIT_FILES) {
-    copyFileSync(join5(assetsDir, file), join5(cliDir, file));
+    copyFileSync(join6(assetsDir, file), join6(cliDir, file));
     written.push(`tools/docs-cli/${file}`);
   }
   for (const rule of ALL_HOUSE_STYLE_RULES) {
-    const target = join5(cliDir, `${rule}.mjs`);
+    const target = join6(cliDir, `${rule}.mjs`);
     if (rules.includes(rule)) {
-      copyFileSync(join5(assetsDir, `${rule}.mjs`), target);
+      copyFileSync(join6(assetsDir, `${rule}.mjs`), target);
       written.push(`tools/docs-cli/${rule}.mjs`);
     } else if (existsSync7(target)) {
       rmSync(target, { force: true });
     }
   }
-  writeFileSync4(join5(cliDir, "index.mjs"), renderProjectCliIndex(rules, dirs));
+  writeFileSync4(join6(cliDir, "index.mjs"), renderProjectCliIndex(rules, dirs));
   written.push("tools/docs-cli/index.mjs");
-  const rootPkgPath = join5(root, "package.json");
+  const rootPkgPath = join6(root, "package.json");
   if (existsSync7(rootPkgPath)) {
-    const original = readFileSync8(rootPkgPath, "utf8");
+    const original = readFileSync9(rootPkgPath, "utf8");
     const pm = detectPackageManager(root, original);
     const install = commanderInstallArgs(pm);
     const updated = updateProjectPackageJson(original);
@@ -12254,7 +12295,7 @@ function applyProjectCli(root, options = {}) {
     }
     return { written, packageManager: pm, installCommand: [install.command, ...install.args] };
   }
-  writeFileSync4(join5(cliDir, "package.json"), renderPrivatePackageJson());
+  writeFileSync4(join6(cliDir, "package.json"), renderPrivatePackageJson());
   written.push("tools/docs-cli/package.json");
   return { written, packageManager: "npm", installCommand: ["npm", "install", "--prefix", "tools/docs-cli"] };
 }
@@ -12276,7 +12317,7 @@ function validateIntegrations(options) {
   if (options.projectCli !== void 0 && !list(options.projectCli).length) {
     throw new Error("--project-cli needs at least one rule");
   }
-  const hasCli = options.projectCli || existsSync8(join6(options.root, "tools", "docs-cli", "index.mjs"));
+  const hasCli = options.projectCli || existsSync8(join7(options.root, "tools", "docs-cli", "index.mjs"));
   if (options.commitGate && !hasCli) throw new Error("--commit-gate needs the project CLI; pass --project-cli");
 }
 function applyIntegrations(options) {
@@ -13059,7 +13100,7 @@ function auditProject(root) {
 }
 
 // scripts/repair/status-fields.ts
-import { lstatSync as lstatSync6, readFileSync as readFileSync9, writeFileSync as writeFileSync5 } from "node:fs";
+import { lstatSync as lstatSync6, readFileSync as readFileSync10, writeFileSync as writeFileSync5 } from "node:fs";
 import { resolve as resolve13 } from "node:path";
 function repairStatusFields(root, documents, findings) {
   let applied = 0;
@@ -13070,7 +13111,7 @@ function repairStatusFields(root, documents, findings) {
     let current;
     try {
       if (!lstatSync6(path).isFile()) continue;
-      current = readFileSync9(path, "utf8");
+      current = readFileSync10(path, "utf8");
     } catch (error) {
       if (error instanceof Error && "code" in error && error.code === "ENOENT") continue;
       throw error;
@@ -13324,11 +13365,11 @@ function run5(options) {
 }
 
 // scripts/read/project-root.ts
-import { existsSync as existsSync9, readFileSync as readFileSync10 } from "node:fs";
-import { dirname as dirname7, join as join7, resolve as resolve15 } from "node:path";
+import { existsSync as existsSync9, readFileSync as readFileSync11 } from "node:fs";
+import { dirname as dirname7, join as join8, resolve as resolve15 } from "node:path";
 function isAdopted(root) {
   try {
-    const lines = readFileSync10(join7(root, "docs", "README.md"), "utf8").split(/\r?\n/).map((line2) => line2.trim());
+    const lines = readFileSync11(join8(root, "docs", "README.md"), "utf8").split(/\r?\n/).map((line2) => line2.trim());
     const open2 = lines.flatMap((line2, index) => line2 === "<!-- struct-docs:index -->" ? [index] : []);
     const close2 = lines.flatMap((line2, index) => line2 === "<!-- /struct-docs:index -->" ? [index] : []);
     return open2.length === 1 && close2.length === 1 && Number(open2[0]) < Number(close2[0]);
@@ -13341,7 +13382,7 @@ function* ancestors(start) {
   for (; ; ) {
     yield dir;
     const parent = dirname7(dir);
-    if (parent === dir || existsSync9(join7(dir, ".git"))) return;
+    if (parent === dir || existsSync9(join8(dir, ".git"))) return;
     dir = parent;
   }
 }

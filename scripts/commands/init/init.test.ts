@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { test } from 'node:test';
 import { defaultConfig } from '../../policy/config-defaults.js';
+import { loadConfig } from '../../read/config.js';
 import { surveyInit } from '../../read/init-survey.js';
 import { readReviewTemplate } from '../../read/review-template.js';
 import { tempDocs } from '../../../tests/utils/temp-docs.js';
@@ -112,5 +114,21 @@ test('gitignore planning follows normalized registry policy and preserves existi
     assert.ok(ignore?.includes('/docs/private/'));
     assert.ok(!ignore?.includes('/docs/living/'));
     assert.equal(readFileSync(join(root, '.gitignore'), 'utf8'), '# user-owned\n/docs/reviews/\n');
+  });
+});
+
+test('committed documents are never gitignored by a default, only by a written choice', () => {
+  tempDocs({ 'reviews/auth.md': '# Auth review' }, (root) => {
+    const git = (...args: string[]) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { cwd: root });
+    git('init', '-q');
+    git('add', '.');
+    git('commit', '-qm', 'reviews');
+    const refusal = () => planInit(surveyInit(root, loadConfig(root).config!)).refusals
+      .find((finding) => finding.rule === 'init-gitignore');
+    assert.match(refusal()?.message ?? '', /docs\/reviews\/ has committed files but is gitignored by default/);
+    for (const choice of ['true', 'false']) {
+      writeFileSync(join(root, '.struct-docs.yml'), `doctypes:\n  reviews:\n    gitignored: ${choice}\n`);
+      assert.equal(refusal(), undefined, `gitignored: ${choice} is a written choice`);
+    }
   });
 });
