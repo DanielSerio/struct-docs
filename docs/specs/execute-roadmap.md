@@ -18,6 +18,10 @@ branch changes. Check every scoped node's external dependencies and inherited an
 gates, including later tasks. Preflight rejection reports the evidence without changing
 leaf status or Notes. Stale derived values alone are not authored errors.
 
+Only audit errors in the scoped roadmap files, or ones that stop the graph from being
+modeled, reject the run. Other audit errors are reported as context and become the run's
+baseline: later audits fail only on errors that baseline does not hold.
+
 Authored changes stay within the named descendants. Related derived ancestor statuses
 and the generated index may change through repair, without expanding implementation
 scope. Account for prospective repair paths during preflight; stop before global repair
@@ -60,15 +64,36 @@ Commit explicit task paths, preserving unrelated staging. After each commit, ins
 paths, run audit and confirm another repair changes no bytes or modification times before
 selecting another leaf. A finished scoped report never authorizes work elsewhere.
 
+## Fix budget
+
+An ordinary failure is part of the task, not a blocker. A failed lint, type, test or audit
+check, or an unmet acceptance criterion, that the task's own change caused and that can be
+fixed inside its allowed paths is fixed and re-run. Each distinct failure gets at most three
+fix attempts. Stop sooner when an attempt brings back the same failure with nothing new
+learned, or when the fix would leave the allowed paths, weaken or skip a check, or
+contradict a spec. A failure the task did not cause is not the task's to fix. A verification
+command that fails before it tests anything, such as a shell quoting or syntax error, a wrong
+path or a server not yet started, is not a failed check: the command is corrected and run
+again, by the agent or the coordinator, without spending the budget.
+
+The coordinator sends a failure it finds while verifying back to the same subagent with its
+evidence, at most twice per task, rather than stopping on it. Implementation details that
+the specs and project conventions leave open are the agent's to choose, recorded in the
+task's Notes; behavior a spec should state is a user decision.
+
+Why: a lint error or a failing test is ordinary development work, and stopping on one makes
+the run do less than a developer would. The fixed budget keeps an agent from spending the
+run on an approach that will not work.
+
 ## Stop behavior
 
-After an authorized task starts, stop at the first failed verification check, failed
-acceptance, unsatisfied external dependency or user-only decision. Tell each subagent to
-surface that first blocker immediately, without hiding it through retries, bypassing a
-gate or choosing a default. Start no later task and stop any active work on that leaf.
+After an authorized task starts, stop when a failure outlives or falls outside its fix
+budget, at an unsatisfied external dependency, or at a user-only decision. Tell each
+subagent to surface that blocker as soon as it is one, without hiding it, bypassing a gate
+or choosing a product default. Start no later task and stop any active work on that leaf.
 
 Record the authored leaf blocked with a dated factual Notes entry: the command, exit
-code and relevant output, or the precise unanswered decision. Repair derived statuses
+code and relevant output with the fixes already tried, or the precise unanswered decision. Repair derived statuses
 when safe and inspect the diff. Preserve incomplete code, docs and new files uncommitted
 for inspection; keep earlier verified task commits intact. Do not commit a blocked status
 or note as though the task were verified, and do not discard or stash incomplete work.

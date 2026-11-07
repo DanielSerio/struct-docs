@@ -163,7 +163,7 @@ Antigravity.
 | `roadmap` | Creates a roadmap of demonstrable milestones, or breaks one milestone out into tasks when work starts. |
 | `review` | Writes a code or feature review from the project's template, with rated findings. |
 | `fold` | Merges named loose notes or legacy decisions into the specs that own them, then removes the originals. |
-| `execute-roadmap` | Validates the whole dependency graph, then works through a roadmap or milestone on a dedicated branch: delegates each task, verifies it, commits it, and stops at the first blocker. It never pushes or merges. |
+| `execute-roadmap` | Validates the whole dependency graph, then works through a roadmap or milestone on a dedicated branch: delegates each task, verifies it, commits it, fixes ordinary failures within a bounded budget, and stops at the first real blocker. It never pushes or merges. |
 
 ## CLI
 

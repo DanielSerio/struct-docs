@@ -1,6 +1,6 @@
 ---
 name: execute-roadmap
-description: Execute an entire roadmap index or milestone on a dedicated branch, with sequential delegated tasks, verified commits and a stop at the first blocker.
+description: Execute an entire roadmap index or milestone on a dedicated branch, with sequential delegated tasks, verified commits, a bounded budget for fixing ordinary failures and a stop at the first real blocker.
 user-invocable: true
 ---
 
@@ -26,10 +26,12 @@ node "../../bin/docs-lint.mjs" status "<file>"
 ```
 
 Replace `<file>` with the actual project-relative roadmap file. No `--fix`, `repair`,
-file edits or branch changes belong in preflight. Stop on malformed input, audit errors,
-an unmodelable roadmap, or a cyclic report, naming the CLI evidence. Exit 2 also stops
-the run. Warnings and stale derived values alone do not authorize content changes or
-fail preflight; their repair waits until work is safely isolated.
+file edits or branch changes belong in preflight. Stop on malformed input, audit errors
+in the scoped roadmap files, an unmodelable roadmap, or a cyclic report, naming the CLI
+evidence. Exit 2 also stops the run. Audit errors elsewhere are reported as context, not
+fixed, and form the run's baseline: later audits fail only on errors it does not hold.
+Warnings and stale derived values alone do not authorize content changes or fail
+preflight; their repair waits until work is safely isolated.
 
 Use the full report to resolve every dependency of every node in scope, including later
 tasks and dependencies inherited from ancestors outside the displayed subtree. A bare id
@@ -101,17 +103,38 @@ breakout only when that milestone begins, following the roadmap skill's grammar.
 
 For that one leaf, read its owning documents, acceptance and project instructions/checks.
 Mark its authored status in-progress if necessary. Use the host's real subagent mechanism
-once, passing the task id, owners, acceptance, allowed paths, known changes to preserve
-and required checks. Tell the agent to return its first failed verification check, failed
-acceptance or user-only decision immediately, without retries that hide the failure,
-bypasses of a gate or choosing a default. Do not spawn later tasks speculatively or replace
-delegation with inline work. If delegation is unavailable, stop and report that limitation. Keep branch,
-roadmap status, verification and commits with the coordinator.
+once, passing the task id, owners, acceptance, allowed paths, known changes to preserve,
+required checks and the fix budget below. Do not spawn later tasks speculatively or replace
+delegation with inline work. If delegation is unavailable, stop and report that limitation.
+Keep branch, roadmap status, verification and commits with the coordinator.
+
+### Fix budget
+
+Tell the agent that ordinary failures are its work, not reasons to stop. A lint, type, test
+or audit failure, or an unmet criterion, that its own change caused and that it can fix
+inside the allowed paths gets fixed and the check re-run. Each distinct failure gets at
+most three attempts. A verification command that fails before it tests anything, such as
+shell quoting, a syntax error in the command, a wrong path or a server not yet started, is
+not a failed check: correct the command and run it again, without spending the budget.
+Return early, with the failure, its output and what was tried, when:
+
+- an attempt brings back the same failure and taught nothing new;
+- the fix would leave the allowed paths, weaken or skip a check, or contradict a spec;
+- the task did not cause the failure, such as a required gate that was already red;
+- a product decision is needed that the specs leave unanswered.
+
+Implementation details the specs and project conventions leave open (names, helper
+layout, test shape) are the agent's to choose; it reports them so the Notes entry can
+record them. Only behavior a spec should state is a user decision.
 
 Wait for that agent, then inspect its exact diff. Run applicable checks and verify every
 acceptance criterion with observable evidence. A reported success alone is insufficient.
-Tick only criteria whose evidence holds; add a dated factual Notes entry and set the leaf
-done only after all criteria and checks pass. Never hand-author aggregate statuses.
+Correct your own broken verification commands the same way before judging the result.
+When a check or criterion fails and the failure is inside the budget, send it back to the
+same agent (continue it rather than spawning a new one) with the command and output, at
+most twice per task. Tick only criteria whose evidence holds; add a dated factual Notes
+entry and set the leaf done only after all criteria and checks pass. Never hand-author
+aggregate statuses.
 
 ```sh
 node "../../bin/docs-lint.mjs" repair
@@ -125,7 +148,8 @@ blanket commit. With unrelated staged work, `git commit --only -- <owned paths>`
 it staged; inspect the index and stop if changes cannot be isolated safely.
 
 After the commit, inspect its paths and verify unrelated contents/staging stayed intact.
-Run audit again and confirm a second repair changes no bytes or modification times:
+Run audit again, comparing it with the preflight baseline, and confirm a second repair
+changes no bytes or modification times:
 
 ```sh
 node "../../bin/docs-lint.mjs" audit
@@ -145,14 +169,15 @@ this run. Mention untouched sibling work only as context; do not start it automa
 
 ## Stop and report
 
-After a task starts, stop at the first failed verification check, failed acceptance,
-unsatisfied external gate or decision only the user can make. Retain the command, exit
-code and relevant output, or the precise unanswered question. Do not retry until green,
-weaken a check, fix a deliberately failing rehearsal gate, or choose a plausible default.
-No later task or agent starts; stop any still-running work on the active leaf.
+After a task starts, stop when a failure outlives or falls outside the fix budget, at an
+unsatisfied external gate, or at a decision only the user can make. Retain the command,
+exit code, relevant output and the fixes tried, or the precise unanswered question. Do not
+keep retrying past the budget, weaken a check, fix a deliberately failing rehearsal gate,
+or choose a product default. No later task or agent starts; stop any still-running work on
+the active leaf.
 
 Mark that authored leaf blocked and append a dated factual Notes entry identifying the
-failure and evidence. Keep earlier verified task commits and completed evidence intact.
+failure, evidence and attempts. Keep earlier verified task commits and completed evidence intact.
 When safe, run only derived repair, inspect its diff, and leave the blocked task's code,
 docs and new files uncommitted for inspection. Do not discard, stash or publish incomplete
 work, and do not make a blocked task look verified by committing its status or note.
