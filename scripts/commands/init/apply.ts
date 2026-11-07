@@ -28,7 +28,9 @@ export function applyInit(survey: InitSurvey, plan: InitPlan, templateAsset = re
     }
     const target = projectPath(root, action.path);
     mkdirSync(dirname(target), { recursive: true });
-    if (action.kind === 'template' && template !== undefined) writeFileSync(target, template, { flag: 'wx' });
+    // `wx` keeps a config written since the survey from being replaced by the draft.
+    if (action.kind === 'config' && action.content !== undefined) writeFileSync(target, action.content, { flag: 'wx' });
+    else if (action.kind === 'template' && template !== undefined) writeFileSync(target, template, { flag: 'wx' });
     else if (action.kind === 'gitignore' && action.content !== undefined) writeFileSync(target, action.content);
     written.push(action.path);
   }

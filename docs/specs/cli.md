@@ -12,6 +12,11 @@ Ship `docs-lint` for Node 22+ with Commander. The committed entry is
 `bin/docs-lint.mjs`, one esbuild bundle with no runtime package installation. Commands:
 
 - `init [--apply]`: survey, plan and apply safe initialization; no prose interpretation.
+  Without `.struct-docs.yml`, init prints a drafted config naming every default doctype,
+  every legacy `.doctypes` entry and every docs folder holding documents, with legacy ignore
+  reasons and a comment naming the reserved `roadmaps/`, `templates/` and `living/`; apply
+  writes it when nothing is left to decide. With a config, init refuses to apply while any
+  of those folders is not named under `doctypes` (`null` names a removed default).
   With `--apply`, `--project-cli <rules>` (and `--docs-dirs <dirs>`) writes the approved
   project CLI and `--commit-gate <auto|pre-commit|check-script>` installs the approved gate
   (`specs/project-cli`). Neither runs a package manager; init prints the install command.

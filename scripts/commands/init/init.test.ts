@@ -18,7 +18,7 @@ test('survey and pure plan adopt absent docs without creating placeholders or fi
   tempDocs({}, (root) => {
     const found = survey(root);
     const plan = planInit(found);
-    assert.deepEqual(plan.actions.map((action) => action.kind), ['index', 'template', 'gitignore']);
+    assert.deepEqual(plan.actions.map((action) => action.kind), ['config', 'index', 'template', 'gitignore']);
     assert.equal(plan.missing.length, 2);
     assert.deepEqual(readdirSync(root), []);
     assert.equal(found.tree.documents.length, 0);
@@ -29,7 +29,7 @@ test('apply creates useful empty index and verbatim asset, then becomes a byte a
   tempDocs({}, (root) => {
     const found = survey(root);
     const written = applyInit(found, planInit(found));
-    assert.deepEqual(written, ['docs/README.md', 'docs/templates/code-review-v1.md', '.gitignore']);
+    assert.deepEqual(written, ['.struct-docs.yml', 'docs/README.md', 'docs/templates/code-review-v1.md', '.gitignore']);
     assert.deepEqual(readdirSync(join(root, 'docs')).sort(), ['README.md', 'templates']);
     assert.match(readFileSync(join(root, 'docs/README.md'), 'utf8'), /struct-docs:index/);
     assert.deepEqual(readFileSync(join(root, 'docs/templates/code-review-v1.md')), readFileSync(resolve('assets/code-review-v1.md')));
@@ -130,5 +130,34 @@ test('committed documents are never gitignored by a default, only by a written c
       writeFileSync(join(root, '.struct-docs.yml'), `doctypes:\n  reviews:\n    gitignored: ${choice}\n`);
       assert.equal(refusal(), undefined, `gitignored: ${choice} is a written choice`);
     }
+  });
+});
+
+test('the drafted config names every default, legacy and document folder and keeps ignore reasons', () => {
+  tempDocs({ '.doctypes': 'wireframes: wireframe\nforecast: forecast\n',
+    '.docsignore': '# Local working notes.\nplans/\n', 'specs/auth.md': '# Auth', 'ideas/one.md': '# One',
+    'plans/local.md': '# Local', 'templates/code-review-v1.md': 'template' }, (root) => {
+    const plan = planInit(survey(root));
+    const draft = plan.draft ?? '';
+    for (const line of ['  product:', '  specs:', '  reviews:', '  wireframes:\n    type: wireframe',
+      '  forecast:\n    type: forecast', '  # Local working notes.\n  - plans/', '  # ideas:']) {
+      assert.ok(draft.includes(line), `draft names ${line.trim()}`);
+    }
+    assert.match(draft, /roadmaps\/, templates\/ and living\/ are reserved by the/);
+    assert.ok(!draft.includes('templates:') && !draft.includes('plans:'), 'reserved and ignored folders take no doctype');
+    assert.ok(plan.refusals.some(({ message }) => /docs\/ideas\/ holds documents but has no doctype/.test(message)));
+    assert.ok(!plan.actions.some(({ kind }) => kind === 'config'), 'nothing is written while a folder lacks a type');
+  });
+});
+
+test('an existing config must name every docs folder, defaults included', () => {
+  tempDocs({ 'specs/auth.md': '# Auth', 'wishlist/item.md': '# Item' }, (root) => {
+    const unnamed = () => planInit(surveyInit(root, loadConfig(root).config!)).refusals
+      .filter(({ rule }) => rule === 'init-config').map(({ message }) => message.split(' ')[0]);
+    writeFileSync(join(root, '.struct-docs.yml'), 'doctypes:\n  wishlist:\n    type: wishlist\n');
+    assert.deepEqual(unnamed(), ['docs/product/', 'docs/specs/', 'docs/reviews/']);
+    writeFileSync(join(root, '.struct-docs.yml'),
+      'doctypes:\n  product: null\n  specs:\n    type: spec\n  reviews:\n    type: review\n  wishlist:\n    type: wishlist\n');
+    assert.deepEqual(unnamed(), [], 'removing a default with null still names it');
   });
 });

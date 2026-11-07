@@ -11656,10 +11656,7 @@ function readProjectFile(root, path) {
 }
 
 // scripts/read/committed-docs.ts
-var import_yaml3 = __toESM(require_dist(), 1);
 import { spawnSync } from "node:child_process";
-import { readFileSync as readFileSync6 } from "node:fs";
-import { join as join3 } from "node:path";
 function committedUnder(root, directory) {
   const result = spawnSync("git", ["ls-tree", "-r", "--name-only", "HEAD", "--", `docs/${directory}/`], {
     cwd: root,
@@ -11667,27 +11664,59 @@ function committedUnder(root, directory) {
   });
   return !result.error && result.status === 0 && result.stdout.trim() !== "";
 }
-function explicitlyGitignored(root) {
-  const chosen = /* @__PURE__ */ new Set();
-  let value2;
+
+// scripts/read/config-names.ts
+var import_yaml3 = __toESM(require_dist(), 1);
+import { readFileSync as readFileSync6 } from "node:fs";
+import { join as join3 } from "node:path";
+function rawConfig(root) {
   try {
-    value2 = (0, import_yaml3.parse)(readFileSync6(join3(root, CONFIG_FILE), "utf8"));
+    const value2 = (0, import_yaml3.parse)(readFileSync6(join3(root, CONFIG_FILE), "utf8"));
+    return isRecord(value2) ? value2 : void 0;
   } catch {
-    return chosen;
+    return void 0;
   }
-  if (!isRecord(value2)) return chosen;
-  if (isRecord(value2.living) && value2.living.gitignored === true) chosen.add("living");
-  if (!isRecord(value2.doctypes)) return chosen;
-  for (const [directory, definition] of Object.entries(value2.doctypes)) {
+}
+function namedDoctypes(raw) {
+  return new Set(raw && isRecord(raw.doctypes) ? Object.keys(raw.doctypes) : []);
+}
+function explicitlyGitignored(raw) {
+  const chosen = /* @__PURE__ */ new Set();
+  if (!raw) return chosen;
+  if (isRecord(raw.living) && raw.living.gitignored === true) chosen.add("living");
+  if (!isRecord(raw.doctypes)) return chosen;
+  for (const [directory, definition] of Object.entries(raw.doctypes)) {
     if (isRecord(definition) && definition.gitignored === true) chosen.add(directory);
   }
   return chosen;
+}
+
+// scripts/read/legacy-config.ts
+function readLegacyConfig(root) {
+  const text2 = (path) => readProjectFile(root, path)?.toString("utf8") ?? "";
+  const doctypes = [];
+  for (const line2 of text2("docs/.doctypes").split(/\r?\n/).map((raw) => raw.trim())) {
+    if (!line2 || line2.startsWith("#")) continue;
+    const [directory = "", type = "", ...rest] = line2.split(":").map((part) => part.trim());
+    if (directory && type && !rest.length) doctypes.push([directory, type]);
+  }
+  const ignore = [];
+  let reason = [];
+  for (const line2 of text2("docs/.docsignore").split(/\r?\n/).map((raw) => raw.trim())) {
+    if (line2.startsWith("#")) reason.push(line2.replace(/^#\s?/, ""));
+    else if (line2) {
+      ignore.push({ pattern: line2, reason });
+      reason = [];
+    }
+  }
+  return { doctypes, ignore };
 }
 
 // scripts/read/init-survey.ts
 function surveyInit(root, config) {
   const tree = loadTree(root, config);
   const readme = readReadme(root);
+  const raw = rawConfig(root);
   const refusals = [];
   const refuse = (file, message, line2 = 1) => refusals.push({
     file,
@@ -11705,10 +11734,11 @@ function surveyInit(root, config) {
       refuse(`${directory}/`, `legacy docs/${directory}/ needs an approved migration or fold plan`);
     }
   }
-  const chosen = explicitlyGitignored(root);
+  const chosen = explicitlyGitignored(raw);
   const ignored = Object.entries(config.doctypes).filter(([, type]) => type.gitignored).map(([directory]) => directory);
   if (config.living.gitignored) ignored.push("living");
-  for (const directory of ignored.filter((name) => !chosen.has(name) && committedUnder(root, name))) {
+  const committedIgnored = ignored.filter((name) => !chosen.has(name) && committedUnder(root, name));
+  for (const directory of committedIgnored) {
     refusals.push({
       file: `${directory}/`,
       line: 1,
@@ -11720,11 +11750,17 @@ function surveyInit(root, config) {
   const legacyLine = readme?.split(/\r?\n/).findIndex((line2) => /^\s*<!--\s*\/?(?:manage-docs|clean-docs):index\s*-->\s*$/.test(line2)) ?? -1;
   if (legacyLine >= 0) refuse("README.md", "legacy index markers must be swapped by the init skill", legacyLine + 1);
   const foreign = tree.entries.filter(({ classification }) => classification.cls === "forbidden" || classification.cls === "ungoverned" && !classification.excluded).map(({ path }) => path);
+  const docDirs = [...new Set(tree.entries.filter(({ path, classification }) => path.includes("/") && !(classification.cls === "ungoverned" && classification.excluded)).map(({ path }) => path.split("/")[0] ?? ""))].filter((directory) => directory && !reservedDirectories.has(directory));
   return {
     tree,
     readme,
     refusals,
     foreign,
+    docDirs,
+    committedIgnored,
+    configFile: existsSync3(resolve9(root, CONFIG_FILE)),
+    named: namedDoctypes(raw),
+    legacy: readLegacyConfig(root),
     template: readProjectFile(root, "docs/templates/code-review-v1.md"),
     gitignore: readProjectFile(root, ".gitignore")?.toString("utf8") ?? null
   };
@@ -11877,10 +11913,87 @@ function renderGitignore(existing, patterns) {
   return source + separator + block + newline;
 }
 
+// scripts/render/config-draft.ts
+var yamlScalar = (value2) => /^[A-Za-z0-9_][A-Za-z0-9._/-]*$/.test(value2) ? value2 : JSON.stringify(value2);
+function renderConfigDraft(draft) {
+  const lines = [
+    "# Root configuration; roadmap policy is locked and supplied by the plugin.",
+    "# Every docs folder is listed here. roadmaps/, templates/ and living/ are reserved by the",
+    "# plugin: roadmaps/ and templates/ take no settings, and living/ takes only `gitignored`.",
+    draft.ignore.length ? "ignore:" : "ignore: []"
+  ];
+  for (const { pattern, reason } of draft.ignore) {
+    lines.push(...reason.map((line2) => `  # ${line2}`.trimEnd()), `  - ${yamlScalar(pattern)}`);
+  }
+  lines.push("living:", `  gitignored: ${draft.livingGitignored}`, "doctypes:");
+  for (const { directory, type, committed } of draft.doctypes) {
+    if (!type) {
+      lines.push(
+        `  # docs/${directory}/ holds documents but has no type yet: name one, or ignore the folder.`,
+        `  # ${directory}:`,
+        "  #   type: <type>"
+      );
+      continue;
+    }
+    if (committed) {
+      lines.push(
+        `  # docs/${directory}/ has committed files: set gitignored to false to keep them in git,`,
+        "  # or to true to stop tracking them."
+      );
+    }
+    lines.push(`  ${directory}:`, `    type: ${yamlScalar(type)}`);
+  }
+  return `${lines.join("\n")}
+`;
+}
+
+// scripts/commands/init/config-plan.ts
+function planConfig(survey) {
+  const legacy = new Map(survey.legacy.doctypes);
+  const ignores = compileIgnores(survey.legacy.ignore.map(({ pattern }) => pattern));
+  const ignoredByLegacy = (directory) => survey.tree.files.filter((path) => path.startsWith(`${directory}/`)).every((path) => ignores.some((pattern) => pattern.test(path)));
+  const docDirs = survey.docDirs.filter((directory) => !ignoredByLegacy(directory));
+  const required = [.../* @__PURE__ */ new Set([...Object.keys(defaultConfig().doctypes), ...legacy.keys(), ...docDirs])];
+  const refusals = [];
+  if (survey.configFile) {
+    for (const directory of required.filter((name) => !survey.named.has(name))) {
+      refusals.push({
+        file: ".struct-docs.yml",
+        line: 1,
+        rule: "init-config",
+        severity: "error",
+        message: `docs/${directory}/ is not named under \`doctypes\`; list every docs folder, defaults included`
+      });
+    }
+    return { refusals, draft: void 0 };
+  }
+  const { doctypes: configured } = survey.tree.config;
+  const doctypes = required.map((directory) => ({
+    directory,
+    type: (Object.hasOwn(configured, directory) ? configured[directory]?.type : void 0) ?? legacy.get(directory),
+    committed: survey.committedIgnored.includes(directory)
+  }));
+  for (const { directory } of doctypes.filter(({ type }) => !type)) {
+    refusals.push({
+      file: `${directory}/`,
+      line: 1,
+      rule: "init-config",
+      severity: "error",
+      message: `docs/${directory}/ holds documents but has no doctype; name one in .struct-docs.yml, or ignore the folder`
+    });
+  }
+  const draft = renderConfigDraft({ doctypes, ignore: survey.legacy.ignore, livingGitignored: survey.tree.config.living.gitignored });
+  return { refusals, draft };
+}
+
 // scripts/commands/init/plan.ts
 function planInit(survey) {
   const actions = [];
-  const refusals = [...survey.refusals];
+  const config = planConfig(survey);
+  const refusals = [...survey.refusals, ...config.refusals];
+  if (config.draft !== void 0 && !refusals.length) {
+    actions.push({ kind: "config", path: ".struct-docs.yml", content: config.draft });
+  }
   const state = inspectIndex(survey.readme ?? "");
   if (!state.ok) refusals.push({ file: "README.md", line: 1, rule: "init-index", severity: "error", message: state.message });
   else {
@@ -11908,7 +12021,7 @@ function planInit(survey) {
       missing.push(`documents in docs/${directory}/`);
     }
   }
-  return { actions, refusals, foreign: survey.foreign, missing };
+  return { actions, refusals, foreign: survey.foreign, missing, draft: config.draft };
 }
 
 // scripts/commands/init/apply.ts
@@ -11962,7 +12075,8 @@ function applyInit(survey, plan, templateAsset = readReviewTemplate) {
     }
     const target = projectPath(root, action.path);
     mkdirSync2(dirname3(target), { recursive: true });
-    if (action.kind === "template" && template !== void 0) writeFileSync2(target, template, { flag: "wx" });
+    if (action.kind === "config" && action.content !== void 0) writeFileSync2(target, action.content, { flag: "wx" });
+    else if (action.kind === "template" && template !== void 0) writeFileSync2(target, template, { flag: "wx" });
     else if (action.kind === "gitignore" && action.content !== void 0) writeFileSync2(target, action.content);
     written.push(action.path);
   }
@@ -12337,6 +12451,11 @@ function applyIntegrations(options) {
 }
 
 // scripts/render/init-plan.ts
+function formatConfigDraft(draft) {
+  if (draft === void 0) return "";
+  const body = draft.trimEnd().split("\n").map((line2) => `  ${line2}`.trimEnd());
+  return ["Proposed .struct-docs.yml:", ...body, ""].join("\n") + "\n";
+}
 function formatInitPlan(plan) {
   const lines = ["Initialization plan:"];
   for (const action of plan.actions) lines.push(`  ${action.path}`);
@@ -12347,7 +12466,7 @@ function formatInitPlan(plan) {
   }
   if (plan.missing.length) lines.push("", `Not present yet: ${plan.missing.join(", ")} (not findings).`);
   lines.push("", "Nothing written. Use init --apply for this safe plan; the init skill handles migrations and authored metadata.");
-  return lines.join("\n") + "\n";
+  return formatConfigDraft(plan.draft) + lines.join("\n") + "\n";
 }
 
 // scripts/commands/handlers/init.ts
@@ -12357,7 +12476,10 @@ function run(options) {
   if (!config) return { findings };
   const found = surveyInit(options.root, config);
   const plan = planInit(found);
-  if (plan.refusals.length) return { findings: plan.refusals };
+  if (plan.refusals.length) {
+    const draft = formatConfigDraft(plan.draft);
+    return { findings: plan.refusals, ...draft ? { stdout: draft } : {} };
+  }
   if (!options.apply) return { findings: [], stdout: formatInitPlan(plan) };
   const lines = [...applyInit(found, plan).map((path) => `wrote ${path}`), ...applyIntegrations(options)];
   return { findings: [], ...lines.length ? { stdout: `${lines.join("\n")}

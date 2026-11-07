@@ -4,8 +4,14 @@ This is fixed fixture approval for the automated rehearsal, not approval to chan
 project. The init skill must present an equivalent concrete plan before applying it.
 
 ```yaml
-# Setup walkthroughs are project guides.
 doctypes:
+  product:
+    type: prd
+  specs:
+    type: spec
+  reviews:
+    type: review
+  # Setup walkthroughs are project guides.
   guides:
     type: guide
 ignore:
@@ -15,7 +21,7 @@ ignore:
 
 | Existing file | Approved destination/change | Ownership/content decision |
 | --- | --- | --- |
-| `docs/.doctypes` | Root `.struct-docs.yml`, then remove legacy config | Retain `guides: guide` and its reason |
+| `docs/.doctypes` | Root `.struct-docs.yml`, then remove legacy config | Retain `guides: guide` and its reason; name the default `product`, `specs` and `reviews` folders |
 | `docs/.docsignore` | Root config ignore entry, then remove legacy config | Retain generated exclusion and reason |
 | `docs/guides/setup.md` | Same file; add `owns: [operator-setup]` | Walkthrough content establishes guide type |
 | `docs/specs/service.md` | Same file; add `owns: [service-startup]` | Existing purpose covers startup policy |

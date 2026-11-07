@@ -24,7 +24,8 @@ documents. Seed assets/code-review-v1.md verbatim into docs/templates/code-revie
 
 The proposed config names every docs directory in use and every legacy `.doctypes` entry,
 defaults included, so a reader sees each folder's rules in one file and no legacy type is
-dropped unasked. Keep `owns` on for tracked doctypes and propose topics for their documents;
+dropped unasked. The CLI drafts it and enforces it (`specs/cli`); the skill adds only the
+choices that need judgment. Keep `owns` on for tracked doctypes and propose topics for their documents;
 turning it off is a plan item with a stated reason. Check what git already tracks before
 proposing `gitignored`. Why: a doctype that owns nothing cannot catch a document proposing
 what another already covers, such as a wishlist item proposed again.

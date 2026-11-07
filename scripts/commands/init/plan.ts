@@ -3,13 +3,19 @@ import type { InitSurvey } from '../../read/init-survey.js';
 import { inspectIndex, spliceIndex } from '../../render/index-block.js';
 import { buildIndex } from '../../render/readme.js';
 import { renderGitignore } from '../../render/gitignore.js';
+import { planConfig } from './config-plan.js';
 
-export type InitAction = { kind: 'index' | 'template' | 'gitignore'; path: string; content?: string };
+export type InitAction = { kind: 'config' | 'index' | 'template' | 'gitignore'; path: string; content?: string };
 
 /** Pure survey-to-plan port: only the skill can approve semantic moves or inferred fields. */
 export function planInit(survey: InitSurvey) {
   const actions: InitAction[] = [];
-  const refusals: Finding[] = [...survey.refusals];
+  const config = planConfig(survey);
+  const refusals: Finding[] = [...survey.refusals, ...config.refusals];
+  // The drafted config is written only on a plan with nothing left to decide.
+  if (config.draft !== undefined && !refusals.length) {
+    actions.push({ kind: 'config', path: '.struct-docs.yml', content: config.draft });
+  }
   const state = inspectIndex(survey.readme ?? '');
   if (!state.ok) refusals.push({ file: 'README.md', line: 1, rule: 'init-index', severity: 'error', message: state.message });
   else {
@@ -34,6 +40,6 @@ export function planInit(survey: InitSurvey) {
       missing.push(`documents in docs/${directory}/`);
     }
   }
-  return { actions, refusals, foreign: survey.foreign, missing };
+  return { actions, refusals, foreign: survey.foreign, missing, draft: config.draft };
 }
 export type InitPlan = ReturnType<typeof planInit>;

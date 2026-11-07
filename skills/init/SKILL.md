@@ -31,9 +31,12 @@ type, metadata changes and references to update throughout the repository. Inclu
 
 - Proposed `owns` topics for approval, checking existing owners for uniqueness.
 - Converted custom types/fields and ignore patterns with their retained reasons.
-- Every docs directory in use and every legacy `.doctypes` entry as an explicit doctype,
-  defaults (`product`, `specs`, `reviews`) included, even when its directory is empty now.
-  Dropping a legacy type is a plan item the user approves, never a silent omission.
+- The config built from the `Proposed .struct-docs.yml` that `init` prints when none exists.
+  It already names every default, legacy and in-use docs folder and carries legacy ignore
+  reasons; keep every entry and add only what needs judgment (types for folders it leaves
+  as comments, `owns`, `gitignored`, field changes). Removing a default is written as
+  `<dir>: null`, and dropping a legacy type is a plan item the user approves. Once a config
+  exists, init refuses to apply while it leaves out any of those folders.
 - `owns` left on for tracked doctypes, with a proposed topic for each document. A doctype
   that owns nothing cannot catch a document proposing what another already covers, so
   `owns: false` needs a stated reason and approval.
