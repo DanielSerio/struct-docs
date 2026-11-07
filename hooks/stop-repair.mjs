@@ -7,7 +7,9 @@ import { clearPending, isPending } from './pending.mjs';
 
 /** Quiet turns do not even read adoption metadata; only armed projects need repair. */
 await guard(async () => {
-  const payload = await readPayload();
+  // One deadline under the host's limit covers reading the payload and every repair.
+  const deadline = deadlineFor('Stop');
+  const payload = await readPayload(deadline);
   if (!payload) return;
   const writeOutput = () => {
     if (payload.host === 'antigravity') {
@@ -19,8 +21,6 @@ await guard(async () => {
   // workspace root is searched, since a multi-root write may have armed any of them.
   const pending = new Set(payload.roots.flatMap((start) =>
     [...ancestors(start)].find((dir) => isPending(dir) && isAdopted(dir)) ?? []));
-  // One deadline under the host's limit is shared by every repair.
-  const deadline = deadlineFor('Stop');
   for (const root of pending) {
     const timeout = deadline - Date.now();
     if (timeout <= 0) break;

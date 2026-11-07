@@ -31,11 +31,29 @@ export function parsePatchFiles(command) {
   return [...new Set(entries.filter((entry) => !entry.deleted && entry.path).map((entry) => entry.path))];
 }
 
+/** Stdin until it closes, or undefined at the deadline: a host that never closes it must not hang the hook. */
+function readStdin(deadline) {
+  return new Promise((done) => {
+    let raw = '';
+    const finish = (value) => {
+      clearTimeout(timer);
+      done(value);
+    };
+    const timer = setTimeout(() => {
+      process.stdin.destroy();
+      finish(undefined);
+    }, Math.max(0, deadline - Date.now()));
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', (chunk) => { raw += chunk; });
+    process.stdin.on('end', () => finish(raw));
+    process.stdin.on('error', () => finish(undefined));
+  });
+}
+
 /** Normalize Claude Code, Codex and Antigravity payloads before shared hook logic runs. */
-export async function readPayload() {
-  let raw = '';
-  process.stdin.setEncoding('utf8');
-  for await (const chunk of process.stdin) raw += chunk;
+export async function readPayload(deadline) {
+  const raw = await readStdin(deadline);
+  if (raw === undefined) return undefined;
   const value = JSON.parse(raw);
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   if (isAntigravityPayload(value)) {

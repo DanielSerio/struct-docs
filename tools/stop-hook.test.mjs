@@ -183,7 +183,7 @@ syncBuiltinESMExports();`);
     assert.equal(isPending(root), true);
     const attempt = JSON.parse(readFileSync(probe, 'utf8'));
     assert.deepEqual(attempt.args, [resolve('bin/docs-lint.mjs'), 'repair']);
-    // What is left of the shared 14-second deadline, under the host's 15-second limit.
+    // What is left of the shared 14-second work budget, well under the host's limit.
     assert.ok(attempt.timeout > 12000 && attempt.timeout <= 14000, String(attempt.timeout));
   });
 });

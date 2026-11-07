@@ -29,7 +29,7 @@ function checkFile(root, file, deadline) {
 /** Check each surviving written file; the Stop hook owns all derived repairs. */
 await guard(async () => {
   const deadline = deadlineFor('PostToolUse');
-  const payload = await readPayload();
+  const payload = await readPayload(deadline);
   if (!payload) return;
   const writeOutput = (findings = '') => {
     if (payload.host === 'antigravity') {

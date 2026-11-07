@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { test } from 'node:test';
+import { HOOK_TIMEOUTS } from '../hooks/limits.mjs';
 import { isPending, sentinelPath, clearPending } from '../hooks/pending.mjs';
 import { fixture, invoke, markers, source, write } from './post-write-fixture.mjs';
 
@@ -243,4 +246,18 @@ test('unrecognized PostToolUse payloads exit 0 with the host empty output or not
       assert.equal(isPending(root), false);
     }
   });
+});
+
+test('a host that never closes stdin gets a silent exit within the work budget, not a host kill', async () => {
+  const started = Date.now();
+  // stdin stays open: nothing is written to it and it is never ended.
+  const child = spawn(process.execPath, [resolve('hooks/post-write-check.mjs')], { stdio: ['pipe', 'pipe', 'pipe'] });
+  let output = '';
+  child.stdout.on('data', (chunk) => { output += chunk; });
+  child.stderr.on('data', (chunk) => { output += chunk; });
+  const [code] = await once(child, 'exit');
+  const elapsed = Date.now() - started;
+  assert.equal(code, 0);
+  assert.equal(output, '');
+  assert.ok(elapsed < (HOOK_TIMEOUTS.PostToolUse - 1) * 1000, String(elapsed));
 });
